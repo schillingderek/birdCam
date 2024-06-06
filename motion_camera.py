@@ -8,7 +8,9 @@ from datetime import date
 from pydrive.drive import GoogleDrive
 from pydrive.auth import GoogleAuth  
 import os
+import random
 import requests
+import time
 from flask import Flask, render_template
 from flask import Response
 from threading import Thread
@@ -20,7 +22,7 @@ capture_config = camera.create_preview_configuration()
 camera.start(capture_config)
 
 font = cv2.FONT_HERSHEY_SIMPLEX
-fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
+fourcc = cv2.VideoWriter_fourcc(*'H264') 
 
 global vid_dir
 vid_dir=r"/home/schillingderek/SecurityCamera/output_vids"
@@ -34,19 +36,30 @@ drive = GoogleDrive(gauth)
 def motionvideo():
     global motionvideostart, frame
     motionvideostart=0
-    now=None
     now=datetime.datetime.now()
-    filename=None
-    filename="video "+str(date.today())+" "+str(now.hour)+":"+str(now.minute)+".mp4"
-    filepath=None
+    filename = "video{}{}-{}.avi".format(date.today(), now.hour, now.minute)
     filepath=os.path.join(vid_dir,filename)
     print(filepath)
-    out=None
-    out = cv2.VideoWriter(str(filepath),fourcc, 20.0, (640, 480))
+    width = 640
+    height = 480
+    size = (width, height)
+    fps = 20.0
+    out = cv2.VideoWriter(str(filepath),fourcc, fps, size)
 
-    for x in range(500):
-        out.write(frame)
-        cv2.waitKey(1)
+    num_frames = 20 * 10
+    start_time = time.time()
+
+    for x in range(num_frames):
+        if frame is not None:
+            resizedFrame = cv2.resize(frame, size)
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
+            out.write(frame_rgb)
+        else:
+            print("No frame captured.")
+        time.sleep(0.05)
+    duration = time.time() - start_time
+    print(f"Recording completed in {duration:.2f} seconds for {num_frames} frames.")
+
     out.release()
 
     print("Uploading file...")
