@@ -108,10 +108,10 @@ def livedetection():
             error = mse(frame1gray,frame2gray)
             print(error)
             pir_motion_sensor = GPIO.input(PIR_PIN)
-            print("motiondetection", motiondetection, "motionvideostart", motionvideostart, "pirmotionsensor", pir_motion_sensor)
-            if error>=20.0:
+            print("motiondetection", motiondetection, "motionvideostart", motionvideostart, "cameramotiondetected", str(error>=20.0), "pirmotionsensor", pir_motion_sensor)
+            if error>=20.0 and pir_motion_sensor:
                 cv2.putText(frame, "Motion detected", (50,50), font, 1, (0,255,0), 2)
-            if error>=20.0 and motiondetection==1 and motionvideostart==1:
+            if error>=20.0 and pir_motion_sensor and motiondetection==1 and motionvideostart==1:
                 t1 = Thread(target=motionvideo)
                 t1.start()
         if click==1:
