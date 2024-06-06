@@ -11,11 +11,16 @@ import os
 import random
 import requests
 import time
+import RPi.GPIO as GPIO
 from flask import Flask, render_template
 from flask import Response
 from threading import Thread
 
 app = Flask(__name__)
+
+PIR_PIN = 4
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(PIR_PIN, GPIO.IN)
 
 camera = Picamera2()
 capture_config = camera.create_preview_configuration()
@@ -102,7 +107,8 @@ def livedetection():
             frame2gray=cv2.cvtColor(frame2mse,cv2.COLOR_BGR2GRAY)
             error = mse(frame1gray,frame2gray)
             print(error)
-            print("motiondetection", motiondetection, "motionvideostart", motionvideostart)
+            pir_motion_sensor = GPIO.input(PIR_PIN)
+            print("motiondetection", motiondetection, "motionvideostart", motionvideostart, "pirmotionsensor", pir_motion_sensor)
             if error>=20.0:
                 cv2.putText(frame, "Motion detected", (50,50), font, 1, (0,255,0), 2)
             if error>=20.0 and motiondetection==1 and motionvideostart==1:
