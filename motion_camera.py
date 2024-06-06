@@ -15,6 +15,7 @@ import RPi.GPIO as GPIO
 from flask import Flask, render_template
 from flask import Response
 from threading import Thread
+from tflite_runtime.interpreter import Interpreter
 
 app = Flask(__name__)
 
@@ -37,6 +38,10 @@ motiondetection=0
 gauth = GoogleAuth()
 gauth.LocalWebserverAuth()
 drive = GoogleDrive(gauth)
+
+path_to_labels = "birds-label.txt"
+path_to_model = "birds-model.tflite"
+path_to_image = "images/bird.jpg"
 
 def motionvideo():
     global motionvideostart, frame
