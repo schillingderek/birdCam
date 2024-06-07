@@ -153,7 +153,8 @@ def check_for_bird():
     _, height, width, _ = interpreter.get_input_details()[0]["shape"]
 
     resized_frame = cv2.resize(frame, (224, 224))
-    image_pil = Image.fromarray(resized_frame)
+    resized_frame_3channel = cv2.cvtColor(resized_frame, cv2.COLOR_RGBA2RGB)
+    image_pil = Image.fromarray(resized_frame_3channel)
     results = classify_image(interpreter, image_pil)
     label_id, prob = results[0]
     print("bird: " + labels[label_id])
