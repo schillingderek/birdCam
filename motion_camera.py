@@ -165,9 +165,12 @@ def check_for_bird():
     filename = "image{}{}-{}-{}-{}.jpg".format(
         date.today(), now.hour, now.minute, labels[label_id], str(prob)
     )
+    filename2 = "image{}{}-{}-{}-{}-colorswap.jpg".format(
+        date.today(), now.hour, now.minute, labels[label_id], str(prob)
+    )
     filepath = os.path.join(img_dir, filename)
     cv2.imwrite(filepath, resized_frame)
-    cv2.imwrite(filepath + "colorswap", cv2.cvtColor(resized_frame, cv2.COLOR_RGB2BGR))
+    cv2.imwrite(filename2, cv2.cvtColor(resized_frame, cv2.COLOR_RGB2BGR))
     print("Image saved successfully at:", filepath)
 
     if prob > prob_threshold:
