@@ -165,6 +165,7 @@ def check_for_bird():
     filename = "image{}{}-{}-{}-{}.jpg".format(
         date.today(), now.hour, now.minute, labels[label_id], str(prob)
     )
+    filename = filename.replace(",", "").replace(".", "").replace(" ", "")
     filepath = os.path.join(img_dir, filename)
     cv2.imwrite(filepath, resized_frame)
     print("Image saved successfully at:", filepath)
