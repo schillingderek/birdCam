@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from PIL import Image
 from picamera2 import Picamera2
 import cv2
 import numpy as np
@@ -32,6 +33,8 @@ fourcc = cv2.VideoWriter_fourcc(*'H264')
 
 global vid_dir
 vid_dir=r"/home/schillingderek/SecurityCamera/output_vids"
+global img_dir
+vid_dir=r"/home/schillingderek/SecurityCamera/images"
 global motiondetection
 motiondetection=0
 
@@ -41,7 +44,8 @@ drive = GoogleDrive(gauth)
 
 path_to_labels = "birds-label.txt"
 path_to_model = "birds-model.tflite"
-path_to_image = "images/bird.jpg"
+
+prob_threshold = 0.4
 
 def motionvideo():
     global motionvideostart, frame
@@ -61,7 +65,6 @@ def motionvideo():
 
     for x in range(num_frames):
         if frame is not None:
-            resizedFrame = cv2.resize(frame, size)
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
             out.write(frame_rgb)
         else:
@@ -116,11 +119,74 @@ def livedetection():
             print("motiondetection", motiondetection, "motionvideostart", motionvideostart, "cameramotiondetected", str(error>=20.0), "pirmotionsensor", pir_motion_sensor)
             if error>=20.0 and pir_motion_sensor:
                 cv2.putText(frame, "Motion detected", (50,50), font, 1, (0,255,0), 2)
-            if error>=20.0 and pir_motion_sensor and motiondetection==1 and motionvideostart==1:
-                t1 = Thread(target=motionvideo)
-                t1.start()
+            if framecount % 10 and error >= 20.0 and pir_motion_sensor == 0:
+                start_time = time.time()
+                bird = check_for_bird()
+                end_time = time.time()
+                print(f"Time taken to check for bird: {end_time - start_time:.2f} seconds")
+            # if error>=20.0 and pir_motion_sensor and motiondetection==1 and motionvideostart==1:
+            #     t1 = Thread(target=motionvideo)
+            #     t1.start()
         if click==1:
             break
+
+def check_for_bird():
+    """ is there a bird at the feeder? """
+    global frame
+    labels = load_labels()
+    interpreter = Interpreter(path_to_model)
+    interpreter.allocate_tensors()
+    _, height, width, _ = interpreter.get_input_details()[0]['shape']
+
+    resized_frame = cv2.resize(frame, (224, 224))
+    image_rgb = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
+    image_pil = Image.fromarray(image_rgb)
+    results = classify_image(interpreter, image_pil)
+    label_id, prob = results[0]
+    print("bird: " + labels[label_id])
+    print("prob: " + str(prob))
+
+    now=datetime.datetime.now()
+
+    filename = "image{}{}-{}-{}-{}.jpg".format(date.today(), now.hour, now.minute, labels[label_id], str(prob))
+    filepath = os.path.join(img_dir,filename)
+    cv2.imwrite(filepath, resized_frame)
+    print("Image saved successfully at:", filepath)
+
+    if prob > prob_threshold:
+        bird = labels[label_id]
+        bird = bird[bird.find(",") + 1:]
+        prob_pct = str(round(prob * 100, 1)) + "%"
+        return bird, prob_pct
+    
+    return None, None
+
+def load_labels():
+    """ load labels for the ML model from the file specified """
+    with open(path_to_labels, 'r') as f:
+        return {i: line.strip() for i, line in enumerate(f.readlines())}
+
+
+def set_input_tensor(interpreter, image):
+    tensor_index = interpreter.get_input_details()[0]['index']
+    input_tensor = interpreter.tensor(tensor_index)()[0]
+    input_tensor[:, :] = image
+
+
+def classify_image(interpreter, image, top_k=1):
+    """ return a sorted array of classification results """
+    set_input_tensor(interpreter, image)
+    interpreter.invoke()
+    output_details = interpreter.get_output_details()[0]
+    output = np.squeeze(interpreter.get_tensor(output_details['index']))
+
+    # if model is quantized (uint8 data), then dequantize the results
+    if output_details['dtype'] == np.uint8:
+        scale, zero_point = output_details['quantization']
+        output = scale * (output - zero_point)
+
+    ordered = np.argpartition(-output, top_k)
+    return [(i, output[i]) for i in ordered[:top_k]]
 
 def webframes():
     print("Entering live feed")
