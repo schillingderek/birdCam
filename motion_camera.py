@@ -115,7 +115,7 @@ def livedetection():
             frame2mse = frame
             frame2gray = cv2.cvtColor(frame2mse, cv2.COLOR_BGR2GRAY)
             error = mse(frame1gray, frame2gray)
-            print(error)
+            # print(error)
             pir_motion_sensor = GPIO.input(PIR_PIN)
             print(
                 "motiondetection",
@@ -129,7 +129,8 @@ def livedetection():
             )
             if error >= 20.0 and pir_motion_sensor:
                 cv2.putText(frame, "Motion detected", (50, 50), font, 1, (0, 255, 0), 2)
-            if framecount % 30 == 0 and error >= 20.0 and pir_motion_sensor == 0:
+            if error >= 20.0 and pir_motion_sensor:
+                print("checking to see if there is a bird")
                 start_time = time.time()
                 bird = check_for_bird()
                 end_time = time.time()
