@@ -64,7 +64,7 @@ def motionvideo():
 
     for x in range(num_frames):
         if frame is not None:
-            frame_bgr = cv2.cvtColor(frame, cv2.COLOR_BGR2RBG)
+            frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
             out.write(frame_bgr)
         else:
             print("No frame captured.")
