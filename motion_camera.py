@@ -137,9 +137,9 @@ def livedetection():
                 print(
                     f"Time taken to check for bird: {end_time - start_time:.2f} seconds"
                 )
-            # if error>=20.0 and pir_motion_sensor and motiondetection==1 and motionvideostart==1:
-            #     t1 = Thread(target=motionvideo)
-            #     t1.start()
+            if error>=20.0 and pir_motion_sensor and motiondetection==1 and motionvideostart==1:
+                t1 = Thread(target=motionvideo)
+                t1.start()
         if click == 1:
             break
 
@@ -153,8 +153,7 @@ def check_for_bird():
     _, height, width, _ = interpreter.get_input_details()[0]["shape"]
 
     resized_frame = cv2.resize(frame, (224, 224))
-    image_rgb = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2RGB)
-    image_pil = Image.fromarray(image_rgb)
+    image_pil = Image.fromarray(resized_frame)
     results = classify_image(interpreter, image_pil)
     label_id, prob = results[0]
     print("bird: " + labels[label_id])
@@ -165,13 +164,8 @@ def check_for_bird():
     filename = "image{}{}-{}-{}-{}.jpg".format(
         date.today(), now.hour, now.minute, labels[label_id], str(prob)
     )
-    filename2 = "image{}{}-{}-{}-{}-colorswap.jpg".format(
-        date.today(), now.hour, now.minute, labels[label_id], str(prob)
-    )
     filepath = os.path.join(img_dir, filename)
-    filepath2 = os.path.join(img_dir, filename2)
     cv2.imwrite(filepath, resized_frame)
-    cv2.imwrite(filepath2, cv2.cvtColor(resized_frame, cv2.COLOR_RGB2BGR))
     print("Image saved successfully at:", filepath)
 
     if prob > prob_threshold:
