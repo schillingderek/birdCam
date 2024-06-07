@@ -129,7 +129,7 @@ def livedetection():
             )
             if error >= 20.0 and pir_motion_sensor:
                 cv2.putText(frame, "Motion detected", (50, 50), font, 1, (0, 255, 0), 2)
-            if framecount % 30 and error >= 20.0 and pir_motion_sensor == 0:
+            if framecount % 30 == 0 and error >= 20.0 and pir_motion_sensor == 0:
                 start_time = time.time()
                 bird = check_for_bird()
                 end_time = time.time()
