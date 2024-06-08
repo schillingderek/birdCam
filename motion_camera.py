@@ -41,7 +41,7 @@ gauth.LocalWebserverAuth()
 drive = GoogleDrive(gauth)
 
 path_to_labels = "birds-label.txt"
-path_to_model = "birds-model.tflite"
+path_to_model = "model.tflite"
 
 prob_threshold = 0.4
 

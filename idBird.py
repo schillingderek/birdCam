@@ -2,6 +2,7 @@ import numpy as np
 from PIL import Image
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import time  # Import the time module
 
 # Load indices and labels from the npy file
 indices_labels = np.load("indices_labels.npy", allow_pickle=True).item()
@@ -55,7 +56,14 @@ def post_process_output(output_data):
 # Example usage
 if __name__ == "__main__":
     # Assuming frame is your input image
-    frame_path = "robinbird.jpeg"
+    frame_path = "goldfinchbird.jpeg"
+    start_time = time.time()  # Start time
+
     input_image = preprocess_image(frame_path)
     output_data = perform_inference(input_image)
+
+    end_time = time.time()  # End time
+    inference_time = end_time - start_time  # Calculate the time taken for inference
+    print(f"Inference time: {inference_time:.4f} seconds")  # Print the inference time
+
     post_process_output(output_data)
