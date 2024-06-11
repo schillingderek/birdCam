@@ -56,7 +56,7 @@ def post_process_output(output_data):
 # Example usage
 if __name__ == "__main__":
     # Assuming frame is your input image
-    frame_path = "goldfinchbird.jpeg"
+    frame_path = "cedarwaxwing.jpeg"
     start_time = time.time()  # Start time
 
     input_image = preprocess_image(frame_path)

@@ -35,27 +35,32 @@ def perform_inference(input_image):
 
 # Post-process output
 def post_process_output(output_data):
-    # Process the output based on your model's output format
-    # Example: Print the detected objects
-    print("Detected objects:")
+    # List to hold the results
+    results = []
     
     # Assuming output_data is a list of arrays (one array per image)
     for output in output_data:
-        # Get the indices of the top 3 predictions for each image
-        top_indices = np.argsort(output)[::-1][:3]
+        # Get the index of the top prediction for the image
+        top_index = np.argmax(output)
         
-        # Print label and score for each of the top 3 predictions
-        for i, idx in enumerate(top_indices):
-            label = labels_indices.get(idx, "Unknown")
-            score = output[idx]
-            print(f"Top {i+1}: Label: {label}, Score: {score}")
+        # Get the top label and score
+        top_label = labels_indices.get(top_index, "Unknown")
+        top_score = output[top_index]
+        
+        # Append the result as a tuple (label, score)
+        results.append((top_label, top_score))
+    
+    return results
 
-        print()  # Add a newline between predictions for different images
+def check_for_bird(frame):
+    input_image = preprocess_image(frame)
+    output_data = perform_inference(input_image)
+    return post_process_output(output_data)
 
 # Example usage
 if __name__ == "__main__":
     # Assuming frame is your input image
-    frame_path = "goldfinchbird.jpeg"
+    frame_path = "downywoodpecker.jpeg"
     start_time = time.time()  # Start time
 
     input_image = preprocess_image(frame_path)
