@@ -148,10 +148,10 @@
                     container.className = 'file-container';
 
                     const imgElement = document.createElement('img');
-                    imgElement.src = `/images/${image}`;
+                    imgElement.src = `/static/images/${image}`;
                     imgElement.alt = image;
                     imgElement.className = 'media-file'; // Class for consistent styling
-                    imgElement.onclick = () => showModal(`/images/${image}`, 'image', image);
+                    imgElement.onclick = () => showModal(`/static/images/${image}`, 'image', image);
 
                     const nameElement = document.createElement('div');
                     nameElement.textContent = image;
@@ -169,10 +169,10 @@
                     const videoElement = document.createElement('video');
                     videoElement.className = 'media-file'; // Class for consistent styling
                     videoElement.controls = true;
-                    videoElement.onclick = () => showModal(`/output_vids/${video}`, 'video', video);
+                    videoElement.onclick = () => showModal(`/static/videos/${video}`, 'video', video);
 
                     const sourceElement = document.createElement('source');
-                    sourceElement.src = `/output_vids/${video}`;
+                    sourceElement.src = `/static/videos/${video}`;
                     sourceElement.type = 'video/mp4';
                     videoElement.appendChild(sourceElement);
 

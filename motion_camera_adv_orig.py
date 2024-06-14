@@ -208,7 +208,7 @@ class Camera:
         timestamp = datetime.now()
         print(timestamp)
         self.still_config = self.camera.create_still_configuration()
-        self.file_output = f"/home/schillingderek/SecurityCamera/images/snap_{timestamp}.jpg"
+        self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
         self.job = self.camera.switch_mode_and_capture_file(self.still_config, self.file_output, wait=False)
         self.metadata = self.camera.wait(self.job)
 class StreamingOutput(io.BufferedIOBase):
@@ -258,7 +258,7 @@ def startRec():
     global current_video_file
     print("Video Record")
     basename = show_time()
-    parent_dir = "/home/schillingderek/SecurityCamera/output_vids/"
+    parent_dir = "/home/schillingderek/SecurityCamera/static/videos/"
     current_video_file = f"vid_{basename}.h264"  # Save the full path to a global variable
     output.fileoutput = os.path.join(parent_dir, current_video_file)
     output.start()
@@ -272,7 +272,7 @@ def stopRec():
     print("Video Stop")
     output.stop()
     if current_video_file:
-        source_path = os.path.join('/home/schillingderek/SecurityCamera/output_vids/', current_video_file)
+        source_path = os.path.join('/home/schillingderek/SecurityCamera/static/videos/', current_video_file)
         output_path = source_path.replace('.h264', '.mp4')
         convert_h264_to_mp4(source_path, output_path)
         return render_template('stopRec.html', message=f"Conversion successful for {output_path}")
@@ -320,8 +320,8 @@ def snap():
 
 @app.route('/api/files')
 def api_files():
-    image_directory = '/home/schillingderek/SecurityCamera/images/'
-    video_directory = '/home/schillingderek/SecurityCamera/output_vids/'
+    image_directory = '/home/schillingderek/SecurityCamera/static/images/'
+    video_directory = '/home/schillingderek/SecurityCamera/static/videos/'
     try:
         images = [img for img in os.listdir(image_directory) if img.endswith(('.jpg', '.jpeg', '.png'))]
         videos = [file for file in os.listdir(video_directory) if file.endswith('.mp4')]
@@ -337,9 +337,9 @@ def api_files():
 def delete_file(filename):
     # Determine if it's a video or picture based on the extension or another method
     if filename.endswith('.mp4') or filename.endswith('.mkv'):
-        directory = '/home/schillingderek/SecurityCamera/output_vids'
+        directory = '/home/schillingderek/SecurityCamera/static/videos'
     else:
-        directory = '/home/schillingderek/SecurityCamera/images'
+        directory = '/home/schillingderek/SecurityCamera/static/images'
     file_path = os.path.join(directory, filename)
     try:
         os.remove(file_path)
@@ -350,8 +350,8 @@ def delete_file(filename):
 
 @app.route('/files')
 def files():
-    image_directory = '/home/schillingderek/SecurityCamera/images/'
-    video_directory = '/home/schillingderek/SecurityCamera/output_vids/'
+    image_directory = '/home/schillingderek/SecurityCamera/static/images/'
+    video_directory = '/home/schillingderek/SecurityCamera/static/videos/'
     try:
         images = os.listdir(image_directory)
         videos = [file for file in os.listdir(video_directory) if file.endswith(('.mp4'))]  # Assuming video formats
@@ -386,7 +386,7 @@ def logout():
 
 @app.before_request
 def require_login():
-    allowed_routes = ['login', 'images']  # Make sure the streaming endpoints are either correctly authenticated or exempted here.
+    allowed_routes = ['login', 'static']  # Make sure the streaming endpoints are either correctly authenticated or exempted here.
     if request.endpoint not in allowed_routes and 'username' not in session:
         return redirect(url_for('login'))
 
