@@ -386,7 +386,7 @@ def logout():
 
 @app.before_request
 def require_login():
-    allowed_routes = ['login', 'static']  # Make sure the streaming endpoints are either correctly authenticated or exempted here.
+    allowed_routes = ['login', 'images']  # Make sure the streaming endpoints are either correctly authenticated or exempted here.
     if request.endpoint not in allowed_routes and 'username' not in session:
         return redirect(url_for('login'))
 
