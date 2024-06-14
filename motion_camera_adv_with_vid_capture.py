@@ -273,65 +273,107 @@ def stopRec():
         source_path = os.path.join('/home/schillingderek/SecurityCamera/static/videos/', current_video_file)
         output_path = source_path.replace('.h264', '.mp4')
         convert_h264_to_mp4(source_path, output_path)
-        print(f"Conversion successful for {output_path}")
-        current_video_file = None
-    return render_template('stopRec.html')
+        return render_template('stopRec.html', message=f"Conversion successful for {output_path}")
+    else:
+        return render_template('stopRec.html', message="No video was recorded or file path is missing.")
 
-@app.route('/startEmail')
-def startEmail():
-    print("Email Toggled On")
-    global email_allowed
-    email_allowed = True
-    return "Email Toggled On"
+@app.route('/')
+def index():
+    """Video streaming home page."""
+    return render_template('index.html')
 
-@app.route('/stopEmail')
-def stopEmail():
-    print("Email Toggled Off")
-    global email_allowed
-    email_allowed = False
-    return "Email Toggled Off"
+@app.route('/home', methods=['GET', 'POST'])
+def home_func():
+    """Video streaming home page."""
+    return render_template("index.html")
 
-@app.route('/startStreaming.html')
-def startStreaming():
-    print("Starting Stream")
-    camera.start()
-    return render_template('startStreaming.html')
+@app.route('/info.html')
+def info():
+    """Info Pane"""
+    if 'username' not in session:
+        return redirect(url_for('login'))  # Redirect to login if not authenticated
+    return render_template('info.html')
 
-@app.route('/stopStreaming.html')
-def stopStreaming():
-    print("Stopping Stream")
-    camera.stop()
-    return render_template('stopStreaming.html')
-
-@app.route('/videoFeed.html')
-def videoFeed():
-    """Stream MJPEG Frame"""
-    return Response(genFrames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-@app.route('/videoSnap.html')
-def videoSnap():
-    """Stream Snap"""
+@app.route('/snap.html')
+def snap():
+    """Snap Pane"""
+    print("Taking a photo")
     camera.VideoSnap()
-    return render_template('videoSnap.html')
+    return render_template('snap.html')
+
+@app.route('/api/files')
+def api_files():
+    image_directory = '/home/schillingderek/SecurityCamera/static/images/'
+    video_directory = '/home/schillingderek/SecurityCamera/static/videos/'
+    try:
+        images = [img for img in os.listdir(image_directory) if img.endswith(('.jpg', '.jpeg', '.png'))]
+        videos = [file for file in os.listdir(video_directory) if file.endswith('.mp4')]
+        print("Images found:", images)  # Debug print
+        print("Videos found:", videos)  # Debug print
+        return jsonify({'images': images, 'videos': videos})
+    except Exception as e:
+        print("Error in api_files:", str(e))  # Debug print
+        return jsonify({'error': str(e)})
+
+@app.route('/delete-file/<filename>', methods=['DELETE'])
+def delete_file(filename):
+    # Determine if it's a video or picture based on the extension or another method
+    if filename.endswith('.mp4') or filename.endswith('.mkv'):
+        directory = '/home/schillingderek/SecurityCamera/static/videos'
+    else:
+        directory = '/home/schillingderek/SecurityCamera/static/images'
+    file_path = os.path.join(directory, filename)
+    try:
+        os.remove(file_path)
+        return '', 204  # Successful deletion
+    except Exception as e:
+        return str(e), 500  # Internal server error
+
+@app.route('/files')
+def files():
+    image_directory = '/home/schillingderek/SecurityCamera/static/images/'
+    video_directory = '/home/schillingderek/SecurityCamera/static/videos/'
+    try:
+        images = os.listdir(image_directory)
+        videos = [file for file in os.listdir(video_directory) if file.endswith(('.mp4'))]  # Assuming video formats
+        # Filtering out system files like .DS_Store which might be present in directories
+        images = [img for img in images if img.endswith(('.jpg', '.jpeg', '.png'))]
+        return render_template('files.html', images=images, videos=videos)
+    except Exception as e:
+        return str(e)  # For debugging purposes, show the exception in the browser
+
+api.add_resource(VideoFeed, '/cam')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if 'username' in session:
+        return redirect(url_for('index'))
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         if username in users and users[username] == password:
             session['username'] = username
-            return redirect(url_for('videoFeed'))
+            return redirect(url_for('index'))
         else:
-            return 'Invalid credentials'
+            return render_template('login.html', error="Invalid username or password")
     return render_template('login.html')
 
 @app.route('/logout')
 def logout():
     session.pop('username', None)
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))  # Redirect to index which will force login due to session check
 
-api.add_resource(VideoFeed, '/video_feed')
+@app.before_request
+def require_login():
+    allowed_routes = ['login', 'static']  # Make sure the streaming endpoints are either correctly authenticated or exempted here.
+    if request.endpoint not in allowed_routes and 'username' not in session:
+        return redirect(url_for('login'))
+
+##############################################################################################################################################################
+
+                                                                        # Ip and Port Routing
+
+##############################################################################################################################################################
 
 if __name__ == '__main__':
     app.run(debug=False, host='0.0.0.0', port=5000)
