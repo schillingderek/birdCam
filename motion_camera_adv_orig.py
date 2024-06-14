@@ -24,14 +24,17 @@ import time
 import os
 import numpy as np
 import threading
+from dotenv import load_dotenv
 
 from PIL import Image, ImageChops, ImageFilter
 from libcamera import Transform
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
+load_dotenv()
+
 app = Flask(__name__, template_folder='template', static_url_path='/static')
-app.secret_key = 'KvghJjaPAQbABvB5c3Tw'  # Change this to a random secret key
+app.secret_key = os.getenv('APP_SECRET_KEY')  # Change this to a random secret key
 api = Api(app)
 
 encoder = H264Encoder()
@@ -66,11 +69,11 @@ last_motion_time = None
 
 # Global Email Routes
 sender_email = "schilling.derek@gmail.com"
-app_password = "dbat gwci mvfj zwtj"
+app_password = os.getenv('GOOGLE_APP_PASSWORD')
 receiver_email = "schilling.derek@gmail.com"
 
 # Global Login Credentials CHANGE THEM
-users = {'admin': 'password'}
+users = {os.getenv('APP_LOGIN_USERNAME'): os.getenv('APP_LOGIN_PASSWORD')}
 
 
 ##############################################################################################################################################################
@@ -205,7 +208,7 @@ class Camera:
         timestamp = datetime.now()
         print(timestamp)
         self.still_config = self.camera.create_still_configuration()
-        self.file_output = f"/home/CM4Cam/camserver/static/pictures/snap_{timestamp}.jpg"
+        self.file_output = f"/home/schillingderek/SecurityCamera/images/snap_{timestamp}.jpg"
         self.job = self.camera.switch_mode_and_capture_file(self.still_config, self.file_output, wait=False)
         self.metadata = self.camera.wait(self.job)
 class StreamingOutput(io.BufferedIOBase):
@@ -255,7 +258,7 @@ def startRec():
     global current_video_file
     print("Video Record")
     basename = show_time()
-    parent_dir = "/home/CM4Cam/camserver/static/video/"
+    parent_dir = "/home/schillingderek/SecurityCamera/output_vids/"
     current_video_file = f"vid_{basename}.h264"  # Save the full path to a global variable
     output.fileoutput = os.path.join(parent_dir, current_video_file)
     output.start()
@@ -269,7 +272,7 @@ def stopRec():
     print("Video Stop")
     output.stop()
     if current_video_file:
-        source_path = os.path.join('/home/CM4Cam/camserver/static/video/', current_video_file)
+        source_path = os.path.join('/home/schillingderek/SecurityCamera/output_vids/', current_video_file)
         output_path = source_path.replace('.h264', '.mp4')
         convert_h264_to_mp4(source_path, output_path)
         return render_template('stopRec.html', message=f"Conversion successful for {output_path}")
@@ -317,8 +320,8 @@ def snap():
 
 @app.route('/api/files')
 def api_files():
-    image_directory = '/home/CM4Cam/camserver/static/pictures/'
-    video_directory = '/home/CM4Cam/camserver/static/video/'
+    image_directory = '/home/schillingderek/SecurityCamera/images/'
+    video_directory = '/home/schillingderek/SecurityCamera/output_vids/'
     try:
         images = [img for img in os.listdir(image_directory) if img.endswith(('.jpg', '.jpeg', '.png'))]
         videos = [file for file in os.listdir(video_directory) if file.endswith('.mp4')]
@@ -334,9 +337,9 @@ def api_files():
 def delete_file(filename):
     # Determine if it's a video or picture based on the extension or another method
     if filename.endswith('.mp4') or filename.endswith('.mkv'):
-        directory = '/home/CM4Cam/camserver/static/video'
+        directory = '/home/schillingderek/SecurityCamera/output_vids'
     else:
-        directory = '/home/CM4Cam/camserver/static/pictures'
+        directory = '/home/schillingderek/SecurityCamera/images'
     file_path = os.path.join(directory, filename)
     try:
         os.remove(file_path)
@@ -347,8 +350,8 @@ def delete_file(filename):
 
 @app.route('/files')
 def files():
-    image_directory = '/home/CM4Cam/camserver/static/pictures/'
-    video_directory = '/home/CM4Cam/camserver/static/video/'
+    image_directory = '/home/schillingderek/SecurityCamera/images/'
+    video_directory = '/home/schillingderek/SecurityCamera/output_vids/'
     try:
         images = os.listdir(image_directory)
         videos = [file for file in os.listdir(video_directory) if file.endswith(('.mp4'))]  # Assuming video formats
