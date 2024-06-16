@@ -10,6 +10,11 @@ from picamera2.encoders import H264Encoder, MJPEGEncoder
 from picamera2.outputs import FileOutput, CircularOutput
 import io
 
+import RPi.GPIO as GPIO
+
+from pydrive.drive import GoogleDrive
+from pydrive.auth import GoogleAuth
+
 import subprocess
 from flask import Flask, render_template, Response, jsonify, request, session, redirect, url_for
 from flask_restful import Resource, Api, reqparse, abort
@@ -66,6 +71,14 @@ receiver_email = "schilling.derek@gmail.com"
 
 # Global Login Credentials CHANGE THEM
 users = {os.getenv('APP_LOGIN_USERNAME'): os.getenv('APP_LOGIN_PASSWORD')}
+
+gauth = GoogleAuth()
+gauth.LocalWebserverAuth()
+drive = GoogleDrive(gauth)
+
+PIR_PIN = 4
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(PIR_PIN, GPIO.IN)
 
 ##############################################################################################################################################################
 
@@ -153,7 +166,11 @@ class Camera:
         diff = ImageChops.difference(prev_image, current_image)
         diff = diff.point(lambda x: x > 40 and 255)    #Adjust 40 to change sensitivity. Higher is less sensitive
         count = np.sum(np.array(diff) > 0)
-        if count > 500:  # Sensitivity threshold for motion
+        pir_motion_sensor = GPIO.input(PIR_PIN)
+        image_motion_sensor = count > 500
+        print("PIR Motion Sensor: ", pir_motion_sensor)
+        print("Image Motion Sensor: ", image_motion_sensor)
+        if image_motion_sensor and pir_motion_sensor:  # Sensitivity threshold for motion AND PIR motion sensor input
             if self.email_allowed:
                 # Motion is detected and email is allowed
                 if last_motion_time is None or (current_time - last_motion_time > 30):
@@ -200,6 +217,13 @@ class Camera:
                 output_path = source_path.replace('.h264', '.mp4')
                 convert_h264_to_mp4(source_path, output_path)
                 print(f"Conversion successful for {output_path}")
+
+                print("Uploading file...")
+                f = drive.CreateFile({"title": str(os.path.basename(output_path))})
+                f.SetContentFile(str(output_path))
+                f.Upload()
+                f = None
+                print("Upload Completed.")
             self.is_recording = False
 
 ##############################################################################################################################################################
