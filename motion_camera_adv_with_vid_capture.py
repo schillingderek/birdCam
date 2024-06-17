@@ -33,6 +33,8 @@ from libcamera import Transform
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
+from idBirdTfLite import check_for_bird
+
 load_dotenv()
 
 app = Flask(__name__, template_folder='template', static_url_path='/static')
@@ -174,11 +176,14 @@ class Camera:
             if self.email_allowed:
                 # Motion is detected and email is allowed
                 if last_motion_time is None or (current_time - last_motion_time > 30):
+                    self.start_recording()  # Start recording when motion is detected
+                    bird_id = check_for_bird(current_image)
+                    print(bird_id)
                     send_email("Motion Detected", "Motion has been detected by your camera.", sender_email, receiver_email, app_password)
                     print("Motion detected and email sent.")
                     last_motion_time = current_time  # Update the last motion time
                     self.email_allowed = False  # Prevent further emails until condition resets
-                    self.start_recording()  # Start recording when motion is detected
+                    
                 else:
                     print("Motion detected but not eligible for email due to cooldown.")
             else:
