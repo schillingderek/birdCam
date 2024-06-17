@@ -4,7 +4,6 @@
 
 ##############################################################################################################################################################
 
-import picamera2  # camera module for cm4-Nano-Cam
 from picamera2 import Picamera2
 from picamera2.encoders import H264Encoder, MJPEGEncoder
 from picamera2.outputs import FileOutput, CircularOutput
