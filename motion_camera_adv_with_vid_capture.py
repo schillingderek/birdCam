@@ -158,6 +158,15 @@ class Camera:
         self.previous_image = image
         return frame_data
 
+    def capture_frame(self):
+        print("Capturing frame from video stream")
+        frame = self.streamOut.frame
+        image = Image.open(io.BytesIO(frame))
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
+        image.save(file_output)
+        self.file_output = file_output
+
 ##############################################################################################################################################################
 
                                                                         # Motion Detection Handler
@@ -176,10 +185,10 @@ class Camera:
             if self.email_allowed:
                 # Motion is detected and email is allowed
                 if last_motion_time is None or (current_time - last_motion_time > 30):
-                    self.start_recording()  # Start recording when motion is detected
-                    camera.VideoSnap()
+                    camera.capture_frame()
                     bird_id = check_for_bird(camera.file_output)
                     print(bird_id)
+                    self.start_recording()  # Start recording when motion is detected
                     send_email("Motion Detected", "Motion has been detected by your camera.", sender_email, receiver_email, app_password)
                     print("Motion detected and email sent.")
                     last_motion_time = current_time  # Update the last motion time
