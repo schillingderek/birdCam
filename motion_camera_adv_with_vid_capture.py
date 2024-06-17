@@ -177,7 +177,8 @@ class Camera:
                 # Motion is detected and email is allowed
                 if last_motion_time is None or (current_time - last_motion_time > 30):
                     self.start_recording()  # Start recording when motion is detected
-                    bird_id = check_for_bird(current_image)
+                    camera.VideoSnap()
+                    bird_id = check_for_bird(camera.file_output)
                     print(bird_id)
                     send_email("Motion Detected", "Motion has been detected by your camera.", sender_email, receiver_email, app_password)
                     print("Motion detected and email sent.")
