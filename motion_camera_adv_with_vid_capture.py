@@ -32,7 +32,7 @@ from libcamera import Transform
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-from idBirdTfLite import check_for_bird
+from idBirdPyTorch import check_for_bird
 
 load_dotenv()
 
