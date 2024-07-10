@@ -144,6 +144,9 @@ class Camera:
         self.email_allowed = True
         self.last_motion_detected_time = None  # Initialize to None
         self.is_recording = False  # Track if video recording is in progress
+        self.bird_id = None
+        self.bird_score = None
+        self.last_capture_time = 0
 
     def get_frame(self):
         self.camera.start()
@@ -166,6 +169,13 @@ class Camera:
         image.save(file_output)
         self.file_output = file_output
 
+    def periodically_capture_frame(self):
+        current_time = time.time()
+        if current_time - self.last_capture_time > 5:  # Capture frame every 5 seconds
+            self.capture_frame()
+            self.bird_id, self.bird_score = check_for_bird(self.file_output)
+            self.last_capture_time = current_time
+
 ##############################################################################################################################################################
 
                                                                         # Motion Detection Handler
@@ -181,6 +191,7 @@ class Camera:
         # print("PIR Motion Sensor: ", pir_motion_sensor)
         # print("Image Motion Sensor: ", image_motion_sensor)
         if image_motion_sensor and pir_motion_sensor:  # Sensitivity threshold for motion AND PIR motion sensor input
+            self.periodically_capture_frame()
             if self.email_allowed:
                 # Motion is detected and email is allowed
                 if last_motion_time is None or (current_time - last_motion_time > 30):
@@ -331,6 +342,15 @@ def info():
     if 'username' not in session:
         return redirect(url_for('login'))  # Redirect to login if not authenticated
     return render_template('info.html')
+
+@app.route('/bird_info')
+def bird_info():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    # Retrieve bird identification data
+    bird_id = camera.bird_id
+    bird_score = camera.bird_score
+    return jsonify({'bird_id': bird_id, 'bird_score': bird_score})
 
 @app.route('/snap.html')
 def snap():

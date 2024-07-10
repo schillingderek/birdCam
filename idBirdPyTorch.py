@@ -50,7 +50,7 @@ def check_for_bird(frame_path):
 
 # Example usage
 if __name__ == "__main__":
-    frame_path = "goldfinchbird.jpeg"
+    frame_path = "car.webp"
     start_time = time.time()  # Start time
 
     label, score = check_for_bird(frame_path)
