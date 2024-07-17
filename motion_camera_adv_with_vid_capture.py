@@ -193,6 +193,7 @@ class Camera:
     def periodically_capture_frame(self):
         current_time = time.time()
         if current_time - self.last_capture_time > self.periodic_image_capture_delay:
+            self.capture_frame()
             try:
                 # Send the captured image to the Flask app running on your MacBook
                 url = "http://10.0.0.229:8000/process_image"  # Replace with your MacBook's local IP address
