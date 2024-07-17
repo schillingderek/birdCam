@@ -194,15 +194,18 @@ class Camera:
         current_time = time.time()
         if current_time - self.last_capture_time > self.periodic_image_capture_delay:
             self.capture_frame()
+            print("Capturing frame for processing")
             try:
                 # Send the captured image to the Flask app running on your MacBook
                 url = "http://10.0.0.229:8000/process_image"  # Replace with your MacBook's local IP address
                 files = {'image': open(self.file_output, 'rb')}
                 response = requests.post(url, files=files)
+                print("Frame processed")
                 
                 if response.status_code == 200:
                     bird_results = response.json()
                     self.bird_id, self.bird_score = zip(*bird_results) if bird_results else ([], [])
+                    print(bird_results)
                 else:
                     print(f"Error in response from server: {response.status_code}")
                 
@@ -226,7 +229,7 @@ class Camera:
         print("PIR: ", pir_motion_sensor)
         print("Image-based sensing: ", image_motion_sensor)
         if image_motion_sensor and pir_motion_sensor:
-            # self.start_detection_thread()
+            self.start_detection_thread()
             if self.email_allowed:
                 if last_motion_time is None or (current_time - last_motion_time > 30):
                     self.start_recording()  # Start recording when motion is detected
@@ -245,7 +248,7 @@ class Camera:
                 print("30 seconds of no motion passed, emails re-enabled.")
                 self.last_motion_detected_time = current_time
                 self.stop_recording()
-                # self.stop_detection_thread()
+                self.stop_detection_thread()
 
 ##############################################################################################################################################################
 
