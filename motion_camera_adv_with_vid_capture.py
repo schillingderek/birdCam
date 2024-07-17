@@ -167,7 +167,7 @@ class Camera:
     def run_detection(self):
         while self.detection_thread_running:
             self.periodically_capture_frame()
-            time.sleep(1)  # Adjust the sleep time as needed
+            time.sleep(5)  # Adjust the sleep time as needed
 
     def get_frame(self):
         self.camera.start()
@@ -193,9 +193,21 @@ class Camera:
     def periodically_capture_frame(self):
         current_time = time.time()
         if current_time - self.last_capture_time > self.periodic_image_capture_delay:
-            self.capture_frame()
-            bird_results = check_for_birds(self.file_output)
-            self.bird_id, self.bird_score = zip(*bird_results) if bird_results else ([], [])
+            try:
+                # Send the captured image to the Flask app running on your MacBook
+                url = "http://10.0.0.229:8000/process_image"  # Replace with your MacBook's local IP address
+                files = {'image': open(self.file_output, 'rb')}
+                response = requests.post(url, files=files)
+                
+                if response.status_code == 200:
+                    bird_results = response.json()
+                    self.bird_id, self.bird_score = zip(*bird_results) if bird_results else ([], [])
+                else:
+                    print(f"Error in response from server: {response.status_code}")
+                
+            except Exception as e:
+                print(f"Error sending image to server: {e}")
+                
             self.last_capture_time = current_time
 
 ##############################################################################################################################################################

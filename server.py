@@ -1,9 +1,12 @@
+from flask import Flask, request, jsonify
+import os
+from PIL import Image
 import numpy as np
 import torch
 from torchvision import transforms
-from PIL import Image
-import time
 from ultralytics import YOLO
+
+app = Flask(__name__)
 
 # Load class names from the .npy file
 class_names = np.load("class_names.npy", allow_pickle=True).tolist()
@@ -61,12 +64,20 @@ def crop_sub_images(image, results):
             sub_images.append(sub_image)
     return sub_images
 
-def check_for_birds(frame_path):
+@app.route('/process_image', methods=['POST'])
+def process_image():
+    if 'image' not in request.files:
+        return jsonify({"error": "No image file provided"}), 400
+    
+    file = request.files['image']
+    image_path = os.path.join("/app", file.filename)
+    file.save(image_path)
+
     # Detect birds
-    results = detect_birds_yolo(frame_path)
+    results = detect_birds_yolo(image_path)
 
     # Read original image
-    image = Image.open(frame_path)
+    image = Image.open(image_path)
     cropped_images = crop_sub_images(image, results)
 
     results = []
@@ -76,18 +87,7 @@ def check_for_birds(frame_path):
         label, score = post_process_output(output)
         results.append((label, score))
 
-    return results
+    return jsonify(results)
 
-# Example usage
-if __name__ == "__main__":
-    frame_path = "testSnap.jpg"
-    start_time = time.time()  # Start time
-
-    results = check_for_birds(frame_path)
-
-    end_time = time.time()  # End time
-    inference_time = end_time - start_time  # Calculate the time taken for inference
-    print(f"Inference time: {inference_time:.4f} seconds")  # Print the inference time
-
-    for label, score in results:
-        print(f"Predicted label: {label}, Score: {score:.4f}")  # Print the result
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8000)
