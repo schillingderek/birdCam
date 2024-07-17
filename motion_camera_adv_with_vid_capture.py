@@ -32,7 +32,7 @@ from libcamera import Transform
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-from idBirdPyTorch import check_for_bird
+from idBirdsWithObjDetection import check_for_birds
 
 load_dotenv()
 
@@ -130,6 +130,7 @@ def send_email(subject, body, sender, receiver, password):
 
 class Camera:
     def __init__(self):
+        # Initialization code remains unchanged
         self.camera = picamera2.Picamera2()
         self.camera.configure(self.camera.create_video_configuration(main={"size": (800, 600)}))
         self.still_config = self.camera.create_still_configuration()
@@ -144,9 +145,29 @@ class Camera:
         self.email_allowed = True
         self.last_motion_detected_time = None  # Initialize to None
         self.is_recording = False  # Track if video recording is in progress
-        self.bird_id = None
-        self.bird_score = None
+        self.bird_id = []  # Change to a list to hold multiple detections
+        self.bird_score = []  # Change to a list to hold multiple detections
         self.last_capture_time = 0
+        self.periodic_image_capture_delay = 15
+        self.detection_thread = None
+        self.detection_thread_running = False
+
+    def start_detection_thread(self):
+        if not self.detection_thread_running:
+            self.detection_thread_running = True
+            self.detection_thread = threading.Thread(target=self.run_detection)
+            self.detection_thread.start()
+
+    def stop_detection_thread(self):
+        if self.detection_thread_running:
+            self.detection_thread_running = False
+            if self.detection_thread is not None:
+                self.detection_thread.join()
+
+    def run_detection(self):
+        while self.detection_thread_running:
+            self.periodically_capture_frame()
+            time.sleep(1)  # Adjust the sleep time as needed
 
     def get_frame(self):
         self.camera.start()
@@ -171,9 +192,10 @@ class Camera:
 
     def periodically_capture_frame(self):
         current_time = time.time()
-        if current_time - self.last_capture_time > 5:  # Capture frame every 5 seconds
+        if current_time - self.last_capture_time > self.periodic_image_capture_delay:
             self.capture_frame()
-            self.bird_id, self.bird_score = check_for_bird(self.file_output)
+            bird_results = check_for_birds(self.file_output)
+            self.bird_id, self.bird_score = zip(*bird_results) if bird_results else ([], [])
             self.last_capture_time = current_time
 
 ##############################################################################################################################################################
@@ -184,38 +206,31 @@ class Camera:
         global last_motion_time, current_video_file
         current_time = time.time()
         diff = ImageChops.difference(prev_image, current_image)
-        diff = diff.point(lambda x: x > 40 and 255)    #Adjust 40 to change sensitivity. Higher is less sensitive
+        diff = diff.point(lambda x: x > 40 and 255)  # Adjust 40 to change sensitivity. Higher is less sensitive
         count = np.sum(np.array(diff) > 0)
         pir_motion_sensor = GPIO.input(PIR_PIN)
         image_motion_sensor = count > 500
-        # print("PIR Motion Sensor: ", pir_motion_sensor)
-        # print("Image Motion Sensor: ", image_motion_sensor)
-        if image_motion_sensor and pir_motion_sensor:  # Sensitivity threshold for motion AND PIR motion sensor input
-            self.periodically_capture_frame()
+        if image_motion_sensor and pir_motion_sensor:
+            self.start_detection_thread()
             if self.email_allowed:
-                # Motion is detected and email is allowed
                 if last_motion_time is None or (current_time - last_motion_time > 30):
-                    camera.capture_frame()
-                    bird_id = check_for_bird(camera.file_output)
-                    print(bird_id)
                     self.start_recording()  # Start recording when motion is detected
                     send_email("Motion Detected", "Motion has been detected by your camera.", sender_email, receiver_email, app_password)
                     print("Motion detected and email sent.")
-                    last_motion_time = current_time  # Update the last motion time
-                    self.email_allowed = False  # Prevent further emails until condition resets
-                    
+                    last_motion_time = current_time
+                    self.email_allowed = False
                 else:
                     print("Motion detected but not eligible for email due to cooldown.")
             else:
                 print("Motion detected but email not sent due to recent activity.")
             self.last_motion_detected_time = current_time
         else:
-            # No motion detected
             if self.last_motion_detected_time and (current_time - self.last_motion_detected_time > 30) and not self.email_allowed:
-                self.email_allowed = True  # Re-enable sending emails after 30 seconds of no motion
+                self.email_allowed = True
                 print("30 seconds of no motion passed, emails re-enabled.")
-                self.last_motion_detected_time = current_time  # Reset to prevent message re-printing
-                self.stop_recording()  # Stop recording when no motion is detected for 30 seconds
+                self.last_motion_detected_time = current_time
+                self.stop_recording()
+                self.stop_detection_thread()
 
 ##############################################################################################################################################################
 
@@ -347,10 +362,10 @@ def info():
 def bird_info():
     if 'username' not in session:
         return redirect(url_for('login'))
-    # Retrieve bird identification data
-    bird_id = camera.bird_id
-    bird_score = camera.bird_score
-    return jsonify({'bird_id': bird_id, 'bird_score': bird_score})
+    bird_ids = camera.bird_id
+    bird_scores = camera.bird_score
+    bird_info_list = [{'bird_id': bird_id, 'bird_score': bird_score} for bird_id, bird_score in zip(bird_ids, bird_scores)]
+    return jsonify(bird_info_list)
 
 @app.route('/snap.html')
 def snap():

@@ -26,8 +26,7 @@
         <div class="row">
             <div class="col-md-6 col-md-offset-3 innerFrame">
                 <h3>Bird Identification</h3>
-                <p id="bird-id">Bird Type: </p>
-                <p id="bird-score">Likelihood: </p>
+                <div id="bird-info-container"></div>
             </div>
         </div>
     </div>
@@ -39,20 +38,25 @@
                 url: '/bird_info',
                 method: 'GET',
                 success: function(data) {
-                    $('#bird-id').text('Bird Type: ' + (data.bird_id || 'N/A'));
-                    $('#bird-score').text('Likelihood: ' + (data.bird_score ? (data.bird_score * 100).toFixed(2) + '%' : 'N/A'));
+                    let birdInfoContainer = $('#bird-info-container');
+                    birdInfoContainer.empty();
+                    if (data.length > 0) {
+                        data.forEach(bird => {
+                            birdInfoContainer.append('<p>Bird Type: ' + (bird.bird_id || 'N/A') + '</p>');
+                            birdInfoContainer.append('<p>Likelihood: ' + (bird.bird_score ? (bird.bird_score * 100).toFixed(2) + '%' : 'N/A') + '</p>');
+                        });
+                    } else {
+                        birdInfoContainer.append('<p>No birds detected.</p>');
+                    }
                 },
                 error: function() {
-                    $('#bird-id').text('Bird Type: Error');
-                    $('#bird-score').text('Likelihood: Error');
+                    $('#bird-info-container').html('<p>Bird Type: Error</p><p>Likelihood: Error</p>');
                 }
             });
         }
 
-        // Fetch bird info every 5 seconds
         setInterval(fetchBirdInfo, 5000);
 
-        // Fetch bird info immediately on page load
         fetchBirdInfo();
     </script>
 </body>
