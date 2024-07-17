@@ -9,6 +9,8 @@ from picamera2.encoders import H264Encoder, MJPEGEncoder
 from picamera2.outputs import FileOutput, CircularOutput
 import io
 
+import requests
+
 import RPi.GPIO as GPIO
 
 from pydrive.drive import GoogleDrive
