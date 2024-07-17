@@ -223,8 +223,10 @@ class Camera:
         count = np.sum(np.array(diff) > 0)
         pir_motion_sensor = GPIO.input(PIR_PIN)
         image_motion_sensor = count > 500
+        print("PIR: ", pir_motion_sensor)
+        print("Image-based sensing: ", image_motion_sensor)
         if image_motion_sensor and pir_motion_sensor:
-            self.start_detection_thread()
+            # self.start_detection_thread()
             if self.email_allowed:
                 if last_motion_time is None or (current_time - last_motion_time > 30):
                     self.start_recording()  # Start recording when motion is detected
@@ -243,7 +245,7 @@ class Camera:
                 print("30 seconds of no motion passed, emails re-enabled.")
                 self.last_motion_detected_time = current_time
                 self.stop_recording()
-                self.stop_detection_thread()
+                # self.stop_detection_thread()
 
 ##############################################################################################################################################################
 
