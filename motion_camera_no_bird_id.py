@@ -290,6 +290,7 @@ class Camera:
         self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
 
         self.camera.stop_recording()  # Ensure recording is stopped before switching mode
+        self.camera.stop()
         self.camera.configure(self.still_config)
         self.camera.start()  # Start the camera in still mode
 
@@ -300,6 +301,7 @@ class Camera:
 
         self.camera.stop()  # Stop the camera after capturing the image
         self.camera.configure(self.video_config)
+        self.camera.start()
         self.camera.start_recording(self.encoder, output)  # Restart recording
 
 class StreamingOutput(io.BufferedIOBase):
