@@ -151,7 +151,7 @@ def send_email(subject, body, sender, receiver, password):
 class Camera:
     def __init__(self):
         self.camera = picamera2.Picamera2()
-        self.camera.configure(self.camera.create_video_configuration(main={"size": (800, 600)}))
+        self.camera.configure(self.camera.create_video_configuration(main={"size": (1920, 1080)}))
         self.still_config = self.camera.create_still_configuration()
         self.encoder = MJPEGEncoder(10000000)
         self.streamOut = StreamingOutput()
@@ -372,8 +372,8 @@ def bird_info():
 def snap():
     """Snap Pane"""
     print("Taking a photo")
-    camera.VideoSnap()
-    # asyncio.run(camera.video_snap())
+    # camera.VideoSnap()
+    asyncio.run(camera.video_snap())
     return render_template('snap.html')
 
 @app.route('/api/files')
