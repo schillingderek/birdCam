@@ -3,21 +3,20 @@
                                                                         # Imports
 
 ##############################################################################################################################################################
-import picamera2
+
+import picamera2  # camera module for cm4-Nano-Cam
 from picamera2 import Picamera2
 from picamera2.encoders import H264Encoder, MJPEGEncoder
 from picamera2.outputs import FileOutput, CircularOutput
 import io
 
-import requests
-import aiohttp
-import asyncio
-
-
 import RPi.GPIO as GPIO
 
 from pydrive.drive import GoogleDrive
 from pydrive.auth import GoogleAuth
+
+import aiohttp
+import asyncio
 
 import subprocess
 from flask import Flask, render_template, Response, jsonify, request, session, redirect, url_for
@@ -99,6 +98,24 @@ def convert_h264_to_mp4(source_file_path, output_file_path):
     except subprocess.CalledProcessError as e:
         print(f"Error during conversion: {e}")
 
+def upload_video(file_path, output_path):
+    try:
+        convert_h264_to_mp4(file_path, output_path)
+        print(f"Conversion successful for {output_path}")
+
+        print("Uploading file...")
+        f = drive.CreateFile({"title": str(os.path.basename(output_path))})
+        f.SetContentFile(str(output_path))
+        f.Upload()
+        f = None
+        print("Upload Completed.")
+    except Exception as e:
+        print(f"Failed to upload video: {e}")
+
+def start_video_upload(file_path, output_path):
+    upload_thread = threading.Thread(target=upload_video, args=(file_path, output_path))
+    upload_thread.start()        
+
 def show_time():
     """Return current time formatted for file names."""
     return datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -133,7 +150,6 @@ def send_email(subject, body, sender, receiver, password):
 
 class Camera:
     def __init__(self):
-        # Initialization code remains unchanged
         self.camera = picamera2.Picamera2()
         self.camera.configure(self.camera.create_video_configuration(main={"size": (800, 600)}))
         self.still_config = self.camera.create_still_configuration()
@@ -150,10 +166,6 @@ class Camera:
         self.is_recording = False  # Track if video recording is in progress
         self.bird_id = []  # Change to a list to hold multiple detections
         self.bird_score = []  # Change to a list to hold multiple detections
-        self.last_capture_time = 0
-        self.periodic_image_capture_delay = 15
-        self.detection_thread = None
-        self.detection_thread_running = False
 
     async def send_image_for_processing(self, file_output):
         url = "https://feed-the-birds-88.loca.lt/process_image"  # Replace with your MacBook's local IP address
@@ -181,23 +193,6 @@ class Camera:
         self.metadata = self.camera.wait(self.job)
         await self.send_image_for_processing(self.file_output)
 
-    def start_detection_thread(self):
-        if not self.detection_thread_running:
-            self.detection_thread_running = True
-            self.detection_thread = threading.Thread(target=self.run_detection)
-            self.detection_thread.start()
-
-    def stop_detection_thread(self):
-        if self.detection_thread_running:
-            self.detection_thread_running = False
-            if self.detection_thread is not None:
-                self.detection_thread.join()
-
-    def run_detection(self):
-        while self.detection_thread_running:
-            self.periodically_capture_frame()
-            time.sleep(5)  # Adjust the sleep time as needed
-
     def get_frame(self):
         self.camera.start()
         with self.streamOut.condition:
@@ -210,39 +205,6 @@ class Camera:
         self.previous_image = image
         return frame_data
 
-    def capture_frame(self):
-        print("Capturing frame from video stream")
-        frame = self.streamOut.frame
-        image = Image.open(io.BytesIO(frame))
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
-        image.save(file_output)
-        self.file_output = file_output
-
-    def periodically_capture_frame(self):
-        current_time = time.time()
-        if current_time - self.last_capture_time > self.periodic_image_capture_delay:
-            self.capture_frame()
-            print("Capturing frame for processing")
-            try:
-                # Send the captured image to the Flask app running on your MacBook
-                url = "http://10.0.0.229:8000/process_image"  # Replace with your MacBook's local IP address
-                files = {'image': open(self.file_output, 'rb')}
-                response = requests.post(url, files=files)
-                print("Frame processed")
-                
-                if response.status_code == 200:
-                    bird_results = response.json()
-                    self.bird_id, self.bird_score = zip(*bird_results) if bird_results else ([], [])
-                    print(bird_results)
-                else:
-                    print(f"Error in response from server: {response.status_code}")
-                
-            except Exception as e:
-                print(f"Error sending image to server: {e}")
-                
-            self.last_capture_time = current_time
-
 ##############################################################################################################################################################
 
                                                                         # Motion Detection Handler
@@ -251,33 +213,33 @@ class Camera:
         global last_motion_time, current_video_file
         current_time = time.time()
         diff = ImageChops.difference(prev_image, current_image)
-        diff = diff.point(lambda x: x > 40 and 255)  # Adjust 40 to change sensitivity. Higher is less sensitive
+        diff = diff.point(lambda x: x > 40 and 255)    #Adjust 40 to change sensitivity. Higher is less sensitive
         count = np.sum(np.array(diff) > 0)
         pir_motion_sensor = GPIO.input(PIR_PIN)
         image_motion_sensor = count > 500
-        print("PIR: ", pir_motion_sensor)
-        print("Image-based sensing: ", image_motion_sensor)
-        if image_motion_sensor and pir_motion_sensor:
-            self.start_detection_thread()
+        # print("PIR Motion Sensor: ", pir_motion_sensor)
+        # print("Image Motion Sensor: ", image_motion_sensor)
+        if image_motion_sensor and pir_motion_sensor:  # Sensitivity threshold for motion AND PIR motion sensor input
             if self.email_allowed:
+                # Motion is detected and email is allowed
                 if last_motion_time is None or (current_time - last_motion_time > 30):
-                    self.start_recording()  # Start recording when motion is detected
                     send_email("Motion Detected", "Motion has been detected by your camera.", sender_email, receiver_email, app_password)
                     print("Motion detected and email sent.")
-                    last_motion_time = current_time
-                    self.email_allowed = False
+                    last_motion_time = current_time  # Update the last motion time
+                    self.email_allowed = False  # Prevent further emails until condition resets
+                    self.start_recording()  # Start recording when motion is detected
                 else:
                     print("Motion detected but not eligible for email due to cooldown.")
             else:
                 print("Motion detected but email not sent due to recent activity.")
             self.last_motion_detected_time = current_time
         else:
+            # No motion detected
             if self.last_motion_detected_time and (current_time - self.last_motion_detected_time > 30) and not self.email_allowed:
-                self.email_allowed = True
+                self.email_allowed = True  # Re-enable sending emails after 30 seconds of no motion
                 print("30 seconds of no motion passed, emails re-enabled.")
-                self.last_motion_detected_time = current_time
-                self.stop_recording()
-                self.stop_detection_thread()
+                self.last_motion_detected_time = current_time  # Reset to prevent message re-printing
+                self.stop_recording()  # Stop recording when no motion is detected for 30 seconds
 
 ##############################################################################################################################################################
 
@@ -302,15 +264,7 @@ class Camera:
             if current_video_file:
                 source_path = os.path.join('/home/schillingderek/SecurityCamera/static/videos/', current_video_file)
                 output_path = source_path.replace('.h264', '.mp4')
-                convert_h264_to_mp4(source_path, output_path)
-                print(f"Conversion successful for {output_path}")
-
-                print("Uploading file...")
-                f = drive.CreateFile({"title": str(os.path.basename(output_path))})
-                f.SetContentFile(str(output_path))
-                f.Upload()
-                f = None
-                print("Upload Completed.")
+                start_video_upload(source_path, output_path)
             self.is_recording = False
 
 ##############################################################################################################################################################
@@ -404,15 +358,6 @@ def info():
     if 'username' not in session:
         return redirect(url_for('login'))  # Redirect to login if not authenticated
     return render_template('info.html')
-
-@app.route('/bird_info')
-def bird_info():
-    if 'username' not in session:
-        return redirect(url_for('login'))
-    bird_ids = camera.bird_id
-    bird_scores = camera.bird_score
-    bird_info_list = [{'bird_id': bird_id, 'bird_score': bird_score} for bird_id, bird_score in zip(bird_ids, bird_scores)]
-    return jsonify(bird_info_list)
 
 @app.route('/snap.html')
 def snap():

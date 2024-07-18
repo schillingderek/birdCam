@@ -9,3 +9,17 @@ services:
       - .:/app
     environment:
       - PYTHONUNBUFFERED=1
+    networks:
+      - default
+
+  lt:
+    build:
+      context: lt
+      dockerfile: Dockerfile
+    command: "usr/local/bin/lt --port 8000 --local-host bird-identifier --subdomain feed-the-birds-88"
+    ports:
+      - '3000:3000'
+    depends_on:
+      - bird-identifier
+    networks:
+      - default
