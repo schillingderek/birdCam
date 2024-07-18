@@ -7,10 +7,17 @@ import torch
 from torchvision import transforms
 from ultralytics import YOLO
 
+from pydrive.drive import GoogleDrive
+from pydrive.auth import GoogleAuth
+
 import requests
 
 from requests_toolbelt.multipart import decoder
 from werkzeug.utils import secure_filename
+
+gauth = GoogleAuth()
+gauth.LocalWebserverAuth()
+drive = GoogleDrive(gauth)
 
 app = Flask(__name__)
 
@@ -73,22 +80,12 @@ def crop_sub_images(image, results):
 @app.route('/process_image', methods=['POST'])
 def process_image():
     data = request.get_json()
-    image_url = data.get('image_url')
-
-    if not image_url:
-        return jsonify({"error": "No image URL provided"}), 400
-
-    if 'image' not in request.files:
-        return jsonify({"error": "No image file provided"}), 400
-    
-    # Download the image from the provided URL
-    response = requests.get(image_url)
-    if response.status_code != 200:
-        return jsonify({"error": "Unable to download image"}), 400
+    image_id = data.get('file_id')
+    print("Image ID: ", image_id)
 
     image_path = os.path.join("/app", "downloaded_image.jpg")
-    with open(image_path, 'wb') as f:
-        f.write(response.content)
+    driveImage = drive.CreateFile({'id': image_id})
+    driveImage.GetContentFile(image_path)
 
     # Detect birds
     results = detect_birds_yolo(image_path)
