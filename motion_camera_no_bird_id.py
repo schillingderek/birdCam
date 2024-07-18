@@ -6,7 +6,7 @@
 
 import picamera2  # camera module for cm4-Nano-Cam
 from picamera2 import Picamera2
-from picamera2.encoders import H264Encoder, MJPEGEncoder
+from picamera2.encoders import H264Encoder, MJPEGEncoder, Quality
 from picamera2.outputs import FileOutput, CircularOutput
 import io
 
@@ -153,12 +153,12 @@ class Camera:
         self.camera = picamera2.Picamera2()
         self.camera.configure(self.camera.create_video_configuration(main={"size": (800, 600)}))
         self.still_config = self.camera.create_still_configuration()
-        self.encoder = MJPEGEncoder(10000000)
+        self.encoder = MJPEGEncoder()
         self.streamOut = StreamingOutput()
         self.streamOut2 = FileOutput(self.streamOut)
         self.encoder.output = [self.streamOut2]
         self.camera.start_encoder(self.encoder)
-        self.camera.start_recording(encoder, output)
+        self.camera.start_recording(encoder, output, quality=Quality.MEDIUM)
         self.previous_image = None
         self.motion_detected = False  # Track if motion is currently detected
         self.email_allowed = True
@@ -275,7 +275,7 @@ class Camera:
         timestamp = datetime.now()
         print(timestamp)
         self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
-        
+
         self.job = self.camera.switch_mode_and_capture_file(self.still_config, self.file_output, wait=False)
         self.metadata = self.camera.wait(self.job)
 
