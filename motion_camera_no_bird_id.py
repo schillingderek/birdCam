@@ -359,6 +359,15 @@ def info():
         return redirect(url_for('login'))  # Redirect to login if not authenticated
     return render_template('info.html')
 
+@app.route('/bird_info')
+def bird_info():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    bird_ids = camera.bird_id
+    bird_scores = camera.bird_score
+    bird_info_list = [{'bird_id': bird_id, 'bird_score': bird_score} for bird_id, bird_score in zip(bird_ids, bird_scores)]
+    return jsonify(bird_info_list)
+
 @app.route('/snap.html')
 def snap():
     """Snap Pane"""
