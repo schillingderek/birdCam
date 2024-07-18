@@ -285,24 +285,12 @@ class Camera:
 
     def VideoSnap(self):
         print("Snap")
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now()
         print(timestamp)
-        self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
-
-        self.camera.stop_recording()  # Ensure recording is stopped before switching mode
-        self.camera.stop()
-        self.camera.configure(self.still_config)
-        self.camera.start()  # Start the camera in still mode
-
-        self.job = self.camera.capture_file(self.file_output)
+        self.still_config = self.camera.create_still_configuration()
+        self.file_output = f"/home/CM4Cam/camserver/static/pictures/snap_{timestamp}.jpg"
+        self.job = self.camera.switch_mode_and_capture_file(self.still_config, self.file_output, wait=False)
         self.metadata = self.camera.wait(self.job)
-
-        # await self.send_image_for_processing(self.file_output)
-
-        self.camera.stop()  # Stop the camera after capturing the image
-        self.camera.configure(self.video_config)
-        self.camera.start()
-        self.camera.start_recording(self.encoder, output)  # Restart recording
 
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
