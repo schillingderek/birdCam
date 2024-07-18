@@ -271,14 +271,14 @@ class Camera:
 
                                                                         # Picture Snap Handler
 
-    # def VideoSnap(self):
-    #     print("Snap")
-    #     timestamp = datetime.now()
-    #     print(timestamp)
-    #     self.still_config = self.camera.create_still_configuration()
-    #     self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
-    #     self.job = self.camera.switch_mode_and_capture_file(self.still_config, self.file_output, wait=False)
-    #     self.metadata = self.camera.wait(self.job)
+    def VideoSnap(self):
+        print("Snap")
+        timestamp = datetime.now()
+        print(timestamp)
+        self.still_config = self.camera.create_still_configuration()
+        self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
+        self.job = self.camera.switch_mode_and_capture_file(self.still_config, self.file_output, wait=False)
+        self.metadata = self.camera.wait(self.job)
 
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
@@ -372,8 +372,8 @@ def bird_info():
 def snap():
     """Snap Pane"""
     print("Taking a photo")
-    # camera.VideoSnap()
-    asyncio.run(camera.video_snap())
+    camera.VideoSnap()
+    # asyncio.run(camera.video_snap())
     return render_template('snap.html')
 
 @app.route('/api/files')
