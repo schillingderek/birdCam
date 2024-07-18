@@ -98,6 +98,7 @@ def process_image():
         output = perform_inference(input_image)
         label, score = post_process_output(output)
         results.append((label, score))
+    return jsonify(results)
 
 
 if __name__ == '__main__':

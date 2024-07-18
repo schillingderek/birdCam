@@ -6,7 +6,7 @@
 
 ##############################################################################################################################################################
 
-import picamera2  # camera module for cm4-Nano-Cam
+import picamera2 
 from picamera2 import Picamera2
 from picamera2.encoders import H264Encoder, MJPEGEncoder, Quality
 from picamera2.outputs import FileOutput, CircularOutput
@@ -171,14 +171,14 @@ class Camera:
         self.bird_score = []  # Change to a list to hold multiple detections
         self.last_capture_time = time.time()
         self.periodic_image_capture_delay = 15
-        self.drive_link = None
+        self.drive_image_id = None
 
     def perform_obj_detection_and_inference(self):
             print("Processing frame at: ", self.file_output)
             try:
                 # Send the captured image to the Flask app running on your MacBook
                 url = "https://feed-the-birds-88.loca.lt/process_image"
-                data = {'image_url': self.drive_link}
+                data = {'file_id': self.drive_image_id}
                 response = requests.post(url, json=data)
                 print("Frame processed")
                 
@@ -280,7 +280,6 @@ class Camera:
         print("Snap")
         timestamp = datetime.now()
         print(timestamp)
-        self.still_config = self.camera.create_still_configuration()
         self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
         self.job = self.camera.switch_mode_and_capture_file(self.still_config, self.file_output, wait=False)
         self.metadata = self.camera.wait(self.job)
@@ -289,8 +288,8 @@ class Camera:
         f = drive.CreateFile({"title": str(os.path.basename(self.file_output))})
         f.SetContentFile(str(self.file_output))
         f.Upload()
-        self.drive_link = f['webViewLink']
-        print(self.drive_link)
+        self.drive_image_id = f['id']
+        print(self.drive_image_id)
         f = None
         print("Upload Completed.")
 
