@@ -172,10 +172,7 @@ class Camera:
         self.last_capture_time = time.time()
         self.periodic_image_capture_delay = 15
 
-    def periodically_capture_and_process_frame(self):
-        current_time = time.time()
-        if current_time - self.last_capture_time > self.periodic_image_capture_delay:
-            self.VideoSnap()
+    def perform_obj_detection_and_inference(self):
             print("Capturing frame for processing")
             try:
                 # Send the captured image to the Flask app running on your MacBook
@@ -193,7 +190,12 @@ class Camera:
                 
             except Exception as e:
                 print(f"Error sending image to server: {e}")
-                
+
+    def periodically_capture_and_process_frame(self):
+        current_time = time.time()
+        if current_time - self.last_capture_time > self.periodic_image_capture_delay:
+            self.VideoSnap()
+            self.perform_obj_detection_and_inference()
             self.last_capture_time = current_time
 
     def get_frame(self):
@@ -375,6 +377,7 @@ def snap():
     """Snap Pane"""
     print("Taking a photo")
     camera.VideoSnap()
+    camera.perform_obj_detection_and_inference()
     return render_template('snap.html')
 
 @app.route('/api/files')
