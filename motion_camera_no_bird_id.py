@@ -153,9 +153,8 @@ def send_email(subject, body, sender, receiver, password):
 class Camera:
     def __init__(self):
         self.camera = picamera2.Picamera2()
-        self.video_config = self.camera.create_video_configuration(main={"size": (800, 600)},
-                                                                   lores={"size": (320, 240), "format": "YUV420"})
-        self.still_config = self.camera.create_still_configuration()
+        self.video_config = self.camera.create_video_configuration(main={"size": (800, 600)})
+        self.still_config = self.camera.create_still_configuration(main={"size": (1920, 1080)})
         self.camera.configure(self.video_config)
         self.encoder = MJPEGEncoder(10000000)
         self.streamOut = StreamingOutput()
