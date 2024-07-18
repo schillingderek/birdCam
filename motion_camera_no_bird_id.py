@@ -187,7 +187,6 @@ class Camera:
         print("Snap")
         timestamp = datetime.now()
         print(timestamp)
-        self.still_config = self.camera.create_still_configuration()
         self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
         self.job = self.camera.switch_mode_and_capture_file(self.still_config, self.file_output, wait=False)
         self.metadata = self.camera.wait(self.job)
@@ -275,8 +274,8 @@ class Camera:
         print("Snap")
         timestamp = datetime.now()
         print(timestamp)
-        self.still_config = self.camera.create_still_configuration()
         self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
+        
         self.job = self.camera.switch_mode_and_capture_file(self.still_config, self.file_output, wait=False)
         self.metadata = self.camera.wait(self.job)
 
