@@ -17,8 +17,7 @@ import RPi.GPIO as GPIO
 from pydrive.drive import GoogleDrive
 from pydrive.auth import GoogleAuth
 
-import aiohttp
-import asyncio
+import requests
 
 import subprocess
 from flask import Flask, render_template, Response, jsonify, request, session, redirect, url_for
@@ -170,41 +169,32 @@ class Camera:
         self.is_recording = False  # Track if video recording is in progress
         self.bird_id = []  # Change to a list to hold multiple detections
         self.bird_score = []  # Change to a list to hold multiple detections
+        self.last_capture_time = time.time()
+        self.periodic_image_capture_delay = 15
 
-    async def send_image_for_processing(self, file_output):
-        url = "https://feed-the-birds-88.loca.lt/process_image"  # Replace with your MacBook's local IP address
-
-        async with aiohttp.ClientSession() as session:
-            with open(file_output, 'rb') as image_file:
-                form_data = aiohttp.FormData()
-                form_data.add_field('image', image_file, filename=os.path.basename(file_output), content_type='image/jpeg')
-
-                async with session.post(url, data=form_data) as response:
-                    if response.status == 200:
-                        bird_results = await response.json()
-                        self.bird_id, self.bird_score = zip(*bird_results) if bird_results else ([], [])
-                        print(bird_results)
-                    else:
-                        print(f"Error in response from server: {response.status}")
-
-    async def video_snap(self):
-        print("Snap")
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        print(timestamp)
-        self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
-
-        self.camera.stop_recording()  # Ensure recording is stopped before switching mode
-        self.camera.configure(self.still_config)
-        self.camera.start()  # Start the camera in still mode
-
-        self.job = self.camera.capture_file(self.file_output)
-        self.metadata = self.camera.wait(self.job)
-
-        await self.send_image_for_processing(self.file_output)
-
-        self.camera.stop()  # Stop the camera after capturing the image
-        self.camera.configure(self.video_config)
-        self.camera.start_recording(self.encoder, output)  # Restart recording
+    def periodically_capture_and_process_frame(self):
+        current_time = time.time()
+        if current_time - self.last_capture_time > self.periodic_image_capture_delay:
+            self.VideoSnap()
+            print("Capturing frame for processing")
+            try:
+                # Send the captured image to the Flask app running on your MacBook
+                url = "https://feed-the-birds-88.loca.lt/process_image"
+                files = {'image': open(self.file_output, 'rb')}
+                response = requests.post(url, files=files)
+                print("Frame processed")
+                
+                if response.status_code == 200:
+                    bird_results = response.json()
+                    self.bird_id, self.bird_score = zip(*bird_results) if bird_results else ([], [])
+                    print(bird_results)
+                else:
+                    print(f"Error in response from server: {response.status_code}")
+                
+            except Exception as e:
+                print(f"Error sending image to server: {e}")
+                
+            self.last_capture_time = current_time
 
     def get_frame(self):
         self.camera.start()
@@ -231,6 +221,7 @@ class Camera:
         pir_motion_sensor = GPIO.input(PIR_PIN)
         image_motion_sensor = count > 500
         if image_motion_sensor and pir_motion_sensor:  # Sensitivity threshold for motion AND PIR motion sensor input
+            self.periodically_capture_and_process_frame()
             if self.email_allowed:
                 # Motion is detected and email is allowed
                 if last_motion_time is None or (current_time - last_motion_time > 30):
@@ -384,7 +375,6 @@ def snap():
     """Snap Pane"""
     print("Taking a photo")
     camera.VideoSnap()
-    # asyncio.run(camera.video_snap())
     return render_template('snap.html')
 
 @app.route('/api/files')
