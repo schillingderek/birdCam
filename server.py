@@ -1,10 +1,16 @@
 from flask import Flask, request, jsonify
 import os
+import io
 from PIL import Image
 import numpy as np
 import torch
 from torchvision import transforms
 from ultralytics import YOLO
+
+import requests
+
+from requests_toolbelt.multipart import decoder
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -66,17 +72,26 @@ def crop_sub_images(image, results):
 
 @app.route('/process_image', methods=['POST'])
 def process_image():
+    data = request.get_json()
+    image_url = data.get('image_url')
+
+    if not image_url:
+        return jsonify({"error": "No image URL provided"}), 400
+
     if 'image' not in request.files:
         return jsonify({"error": "No image file provided"}), 400
     
-    file = request.files['image']
-    image_path = os.path.join("/app", file.filename)
-    file.save(image_path)
+    # Download the image from the provided URL
+    response = requests.get(image_url)
+    if response.status_code != 200:
+        return jsonify({"error": "Unable to download image"}), 400
+
+    image_path = os.path.join("/app", "downloaded_image.jpg")
+    with open(image_path, 'wb') as f:
+        f.write(response.content)
 
     # Detect birds
     results = detect_birds_yolo(image_path)
-
-    # Read original image
     image = Image.open(image_path)
     cropped_images = crop_sub_images(image, results)
 
@@ -87,7 +102,6 @@ def process_image():
         label, score = post_process_output(output)
         results.append((label, score))
 
-    return jsonify(results)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000)
