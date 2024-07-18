@@ -78,7 +78,7 @@ users = {os.getenv('APP_LOGIN_USERNAME'): os.getenv('APP_LOGIN_PASSWORD')}
 
 gauth = GoogleAuth()
 gauth.LocalWebserverAuth()
-googdrive = GoogleDrive(gauth)
+drive = GoogleDrive(gauth)
 
 PIR_PIN = 4
 GPIO.setmode(GPIO.BCM)
