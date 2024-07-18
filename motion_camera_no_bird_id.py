@@ -197,28 +197,30 @@ class Camera:
         with self.streamOut.condition:
             self.streamOut.condition.wait()
             frame_data = self.streamOut.frame
-        image = Image.open(io.BytesIO(frame_data)).convert('L')  # Convert to grayscale
-        image = image.filter(ImageFilter.GaussianBlur(radius=2))  # Apply Gaussian blur
-        if self.previous_image is not None:
-            self.detect_motion(self.previous_image, image)
-        self.previous_image = image
+        # image = Image.open(io.BytesIO(frame_data)).convert('L')  # Convert to grayscale
+        # image = image.filter(ImageFilter.GaussianBlur(radius=2))  # Apply Gaussian blur
+        # if self.previous_image is not None:
+        self.detect_motion()
+        # self.previous_image = image
         return frame_data
 
 ##############################################################################################################################################################
 
                                                                         # Motion Detection Handler
 
-    def detect_motion(self, prev_image, current_image):
+    def detect_motion(self):
         global last_motion_time, current_video_file
         current_time = time.time()
-        diff = ImageChops.difference(prev_image, current_image)
-        diff = diff.point(lambda x: x > 40 and 255)    #Adjust 40 to change sensitivity. Higher is less sensitive
-        count = np.sum(np.array(diff) > 0)
+        # diff = ImageChops.difference(prev_image, current_image)
+        # diff = diff.point(lambda x: x > 40 and 255)    #Adjust 40 to change sensitivity. Higher is less sensitive
+        # count = np.sum(np.array(diff) > 0)
         pir_motion_sensor = GPIO.input(PIR_PIN)
-        image_motion_sensor = count > 500
+        # image_motion_sensor = count > 500
         # print("PIR Motion Sensor: ", pir_motion_sensor)
         # print("Image Motion Sensor: ", image_motion_sensor)
-        if image_motion_sensor and pir_motion_sensor:  # Sensitivity threshold for motion AND PIR motion sensor input
+        # if image_motion_sensor and pir_motion_sensor:  # Sensitivity threshold for motion AND PIR motion sensor input
+        if pir_motion_sensor:  # Sensitivity threshold for motion AND PIR motion sensor input
+
             if self.email_allowed:
                 # Motion is detected and email is allowed
                 if last_motion_time is None or (current_time - last_motion_time > 30):
