@@ -192,7 +192,7 @@ class Camera:
         self.camera.stop_recording()
         self.job = self.camera.switch_mode_and_capture_file(self.still_config, self.file_output, wait=False)
         self.metadata = self.camera.wait(self.job)
-        self.camera.start_recording(self.video_config)
+        self.camera.start_recording(encoder, output, quality=Quality.HIGH)
         await self.send_image_for_processing(self.file_output)
 
     def get_frame(self):
