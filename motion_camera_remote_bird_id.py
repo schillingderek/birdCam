@@ -173,7 +173,7 @@ class Camera:
         self.periodic_image_capture_delay = 15
 
     def perform_obj_detection_and_inference(self):
-            print("Capturing frame for processing")
+            print("Processing frame at: ", self.file_output)
             try:
                 # Send the captured image to the Flask app running on your MacBook
                 url = "https://feed-the-birds-88.loca.lt/process_image"

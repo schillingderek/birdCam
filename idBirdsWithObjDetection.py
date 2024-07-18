@@ -80,7 +80,7 @@ def check_for_birds(frame_path):
 
 # Example usage
 if __name__ == "__main__":
-    frame_path = "testSnap.jpg"
+    frame_path = "images/testImage.jpg"
     start_time = time.time()  # Start time
 
     results = check_for_birds(frame_path)
