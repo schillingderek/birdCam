@@ -151,14 +151,15 @@ def send_email(subject, body, sender, receiver, password):
 class Camera:
     def __init__(self):
         self.camera = picamera2.Picamera2()
-        self.camera.configure(self.camera.create_video_configuration(main={"size": (800, 600)}))
+        self.video_config = self.camera.create_video_configuration(main={"size": (1280, 720)})
         self.still_config = self.camera.create_still_configuration()
+        self.camera.configure(self.video_config)
         self.encoder = MJPEGEncoder()
         self.streamOut = StreamingOutput()
         self.streamOut2 = FileOutput(self.streamOut)
         self.encoder.output = [self.streamOut2]
         self.camera.start_encoder(self.encoder)
-        self.camera.start_recording(encoder, output, quality=Quality.LOW)
+        self.camera.start_recording(encoder, output, quality=Quality.HIGH)
         self.previous_image = None
         self.motion_detected = False  # Track if motion is currently detected
         self.email_allowed = True
@@ -188,8 +189,10 @@ class Camera:
         timestamp = datetime.now()
         print(timestamp)
         self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
+        self.camera.stop_recording()
         self.job = self.camera.switch_mode_and_capture_file(self.still_config, self.file_output, wait=False)
         self.metadata = self.camera.wait(self.job)
+        self.camera.start_recording(self.video_config)
         await self.send_image_for_processing(self.file_output)
 
     def get_frame(self):
