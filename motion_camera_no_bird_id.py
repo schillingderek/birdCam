@@ -177,12 +177,12 @@ class Camera:
                 form_data.add_field('image', image_file, filename=os.path.basename(file_output), content_type='image/jpeg')
 
                 async with session.post(url, data=form_data) as response:
-                    if response.status_code == 200:
+                    if response.status == 200:
                         bird_results = await response.json()
                         self.bird_id, self.bird_score = zip(*bird_results) if bird_results else ([], [])
                         print(bird_results)
                     else:
-                        print(f"Error in response from server: {response.status_code}")
+                        print(f"Error in response from server: {response.status}")
 
     async def video_snap(self):
         print("Snap")
