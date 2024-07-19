@@ -292,12 +292,12 @@ class Camera:
 
 
     def capture_frame(self):
-        print("Capturing image at high res")
-        timestamp = datetime.now()
-        self.still_config = self.camera.create_still_configuration(main={"size": (1920, 1080)})
+        print("Capturing frame from video stream")
+        frame = self.streamOut.frame
+        image = Image.open(io.BytesIO(frame))
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
-        self.job = self.camera.switch_mode_and_capture_file(self.still_config, self.file_output, wait=False)
-        self.metadata = self.camera.wait(self.job)
+        image.save(self.file_output)
         self.uploadFile()
 
     def uploadFile(self):
