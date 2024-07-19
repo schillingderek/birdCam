@@ -160,7 +160,7 @@ class Camera:
                                                             lores={"size": self.lores_size, "format": "YUV420"})
         self.camera.configure(self.video_config)
         self.encoder = MJPEGEncoder()
-        self.encoder.framerate = 20
+        self.encoder.framerate = 30
         self.encoder.size = self.lores_size
         self.encoder.format = "YUV420"
         self.encoder.bitrate = 5000000
