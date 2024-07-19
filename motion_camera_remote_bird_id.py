@@ -200,10 +200,7 @@ class Camera:
     def periodically_capture_and_process_frame(self):
         current_time = time.time()
         if current_time - self.last_capture_time > self.periodic_image_capture_delay:
-            if not self.is_recording:
-                self.VideoSnap()
-            else:
-                self.capture_frame()
+            self.capture_frame()
             self.run_inference_in_thread()
             self.last_capture_time = current_time
 
