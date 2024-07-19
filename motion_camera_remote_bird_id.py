@@ -323,16 +323,10 @@ class StreamingOutput(io.BufferedIOBase):
 camera = Camera()
 
 def genFrames():
-    frame_count = 0
-    reset_interval = 1000  # Number of frames after which to reset the counter
     while True:
         frame = camera.get_frame()
-        if frame_count % 3 == 0:  # Only send every 3rd frame
-            yield (b'--frame\r\n'
+        yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
-        frame_count += 1
-        if frame_count >= reset_interval:
-            frame_count = 0  # Reset the counter
 
 
 ##############################################################################################################################################################
