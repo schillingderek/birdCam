@@ -80,6 +80,8 @@ gauth = GoogleAuth()
 gauth.LocalWebserverAuth()
 drive = GoogleDrive(gauth)
 
+google_drive_folder_id = "1Gut6eCG_p6WmLDRj3w3oHFOiqMHlXkFr"
+
 PIR_PIN = 4
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(PIR_PIN, GPIO.IN)
@@ -105,7 +107,7 @@ def upload_video(file_path, output_path):
         print(f"Conversion successful for {output_path}")
 
         print("Uploading file...")
-        f = drive.CreateFile({"title": str(os.path.basename(output_path))})
+        f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(output_path))})
         f.SetContentFile(str(output_path))
         f.Upload()
         f = None
@@ -283,13 +285,13 @@ class Camera:
 
                                                                         # Picture Snap Handler
 
-    def VideoSnap(self):
-        print("Snapping Image at High Resolution")
-        timestamp = datetime.now()
-        self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
-        self.job = self.camera.switch_mode_and_capture_file(self.still_config, self.file_output, wait=False)
-        self.metadata = self.camera.wait(self.job)
-        self.uploadFile()
+    # def VideoSnap(self):
+    #     print("Snapping Image at High Resolution")
+    #     timestamp = datetime.now()
+    #     self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
+    #     self.job = self.camera.switch_mode_and_capture_file(self.still_config, self.file_output, wait=False)
+    #     self.metadata = self.camera.wait(self.job)
+    #     self.uploadFile()
 
 
     def capture_frame(self):
@@ -303,7 +305,7 @@ class Camera:
 
     def uploadFile(self):
         print("Uploading file...")
-        f = drive.CreateFile({"title": str(os.path.basename(self.file_output))})
+        f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(self.file_output))})
         f.SetContentFile(str(self.file_output))
         f.Upload()
         self.drive_image_id = f['id']
@@ -348,31 +350,31 @@ class VideoFeed(Resource):
 
 ##############################################################################################################################################################
 
-@app.route('/startRec.html')
-def startRec():
-    """Start Recording Pane"""
-    global current_video_file
-    print("Video Record")
-    basename = show_time()
-    parent_dir = "/home/schillingderek/SecurityCamera/static/videos/"
-    current_video_file = f"vid_{basename}.h264"  # Save the full path to a global variable
-    output.fileoutput = os.path.join(parent_dir, current_video_file)
-    output.start()
-    return render_template('startRec.html')
+# @app.route('/startRec.html')
+# def startRec():
+#     """Start Recording Pane"""
+#     global current_video_file
+#     print("Video Record")
+#     basename = show_time()
+#     parent_dir = "/home/schillingderek/SecurityCamera/static/videos/"
+#     current_video_file = f"vid_{basename}.h264"  # Save the full path to a global variable
+#     output.fileoutput = os.path.join(parent_dir, current_video_file)
+#     output.start()
+#     return render_template('startRec.html')
 
-@app.route('/stopRec.html')
-def stopRec():
-    """Stop Recording Pane"""
-    global current_video_file
-    print("Video Stop")
-    output.stop()
-    if current_video_file:
-        source_path = os.path.join('/home/schillingderek/SecurityCamera/static/videos/', current_video_file)
-        output_path = source_path.replace('.h264', '.mp4')
-        convert_h264_to_mp4(source_path, output_path)
-        return render_template('stopRec.html', message=f"Conversion successful for {output_path}")
-    else:
-        return render_template('stopRec.html', message="No video was recorded or file path is missing.")
+# @app.route('/stopRec.html')
+# def stopRec():
+#     """Stop Recording Pane"""
+#     global current_video_file
+#     print("Video Stop")
+#     output.stop()
+#     if current_video_file:
+#         source_path = os.path.join('/home/schillingderek/SecurityCamera/static/videos/', current_video_file)
+#         output_path = source_path.replace('.h264', '.mp4')
+#         convert_h264_to_mp4(source_path, output_path)
+#         return render_template('stopRec.html', message=f"Conversion successful for {output_path}")
+#     else:
+#         return render_template('stopRec.html', message="No video was recorded or file path is missing.")
 
 @app.route('/')
 def index():
