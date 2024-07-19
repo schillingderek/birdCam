@@ -154,9 +154,10 @@ def send_email(subject, body, sender, receiver, password):
 class Camera:
     def __init__(self):
         self.camera = picamera2.Picamera2()
-        # self.video_config = self.camera.create_video_configuration(main={"size": (1280, 720)})
-        self.video_config = self.camera.create_video_configuration(main={"size": (1138, 640)})
-        self.still_config = self.camera.create_still_configuration(main={"size": (1920, 1080)})
+        self.lores_size = (320, 240)
+        self.hires_size = (1280, 720)
+        self.video_config = self.camera.create_video_configuration(main={"size": self.hires_size, "format": "RGB888"},
+                                                            lores={"size": self.lores_size, "format": "YUV420"})
         self.camera.configure(self.video_config)
         self.encoder = MJPEGEncoder(10000000)
         self.streamOut = StreamingOutput()
@@ -285,14 +286,6 @@ class Camera:
 
                                                                         # Picture Snap Handler
 
-    # def VideoSnap(self):
-    #     print("Snapping Image at High Resolution")
-    #     timestamp = datetime.now()
-    #     self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
-    #     self.job = self.camera.switch_mode_and_capture_file(self.still_config, self.file_output, wait=False)
-    #     self.metadata = self.camera.wait(self.job)
-    #     self.uploadFile()
-
 
     def capture_frame(self):
         print("Capturing frame from video stream")
@@ -349,32 +342,6 @@ class VideoFeed(Resource):
                                                                         # @App Routes
 
 ##############################################################################################################################################################
-
-# @app.route('/startRec.html')
-# def startRec():
-#     """Start Recording Pane"""
-#     global current_video_file
-#     print("Video Record")
-#     basename = show_time()
-#     parent_dir = "/home/schillingderek/SecurityCamera/static/videos/"
-#     current_video_file = f"vid_{basename}.h264"  # Save the full path to a global variable
-#     output.fileoutput = os.path.join(parent_dir, current_video_file)
-#     output.start()
-#     return render_template('startRec.html')
-
-# @app.route('/stopRec.html')
-# def stopRec():
-#     """Stop Recording Pane"""
-#     global current_video_file
-#     print("Video Stop")
-#     output.stop()
-#     if current_video_file:
-#         source_path = os.path.join('/home/schillingderek/SecurityCamera/static/videos/', current_video_file)
-#         output_path = source_path.replace('.h264', '.mp4')
-#         convert_h264_to_mp4(source_path, output_path)
-#         return render_template('stopRec.html', message=f"Conversion successful for {output_path}")
-#     else:
-#         return render_template('stopRec.html', message="No video was recorded or file path is missing.")
 
 @app.route('/')
 def index():
