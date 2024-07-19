@@ -157,7 +157,7 @@ class Camera:
         self.lores_size = (640, 480)
         self.hires_size = (1920, 1080)
         self.video_config = self.camera.create_video_configuration(main={"size": self.hires_size, "format": "RGB888"},
-                                                            lores={"size": self.lores_size, "format": "YUV420"})
+                                                            lores={"size": self.lores_size, "format": "RGB888"})
         self.camera.configure(self.video_config)
         self.encoder = MJPEGEncoder()
         self.encoder.framerate = 30
