@@ -11,6 +11,7 @@ from picamera2 import Picamera2
 from picamera2.encoders import H264Encoder, MJPEGEncoder, Quality
 from picamera2.outputs import FileOutput, CircularOutput
 import io
+import cv2
 
 import RPi.GPIO as GPIO
 
@@ -154,16 +155,12 @@ def send_email(subject, body, sender, receiver, password):
 class Camera:
     def __init__(self):
         self.camera = picamera2.Picamera2()
-        self.lores_size = (640, 360)
-        self.hires_size = (1920, 1080)
-        self.video_config = self.camera.create_video_configuration(main={"size": self.hires_size, "format": "RGB888"},
-                                                            lores={"size": self.lores_size, "format": "YUV420"})
+        # self.lores_size = (640, 360)
+        self.hires_size = (800,600)
+        self.video_config = self.camera.create_video_configuration(main={"size": self.hires_size, "format": "RGB888"})
         self.camera.configure(self.video_config)
         self.encoder = MJPEGEncoder()
-        self.encoder.framerate = 30
-        self.encoder.size = self.lores_size
-        self.encoder.format = "YUV420"
-        self.encoder.bitrate = 5000000
+        self.encoder.bitrate = 10000000
         self.streamOut = StreamingOutput()
         self.streamOut2 = FileOutput(self.streamOut)
         self.encoder.output = [self.streamOut2]
