@@ -152,10 +152,10 @@ def send_email(subject, body, sender, receiver, password):
 class Camera:
     def __init__(self):
         self.camera = picamera2.Picamera2()
-        self.video_config = self.camera.create_video_configuration(main={"size": (1280, 720)})
+        self.video_config = self.camera.create_video_configuration(main={"size": (1280, 720), "framerate": 30})
         self.still_config = self.camera.create_still_configuration(main={"size": (1920, 1080)})
         self.camera.configure(self.video_config)
-        self.encoder = MJPEGEncoder(10000000)
+        self.encoder = MJPEGEncoder(5000000)
         self.streamOut = StreamingOutput()
         self.streamOut2 = FileOutput(self.streamOut)
         self.encoder.output = [self.streamOut2]
@@ -192,11 +192,16 @@ class Camera:
             except Exception as e:
                 print(f"Error sending image to server: {e}")
 
+    def run_inference_in_thread(self):
+        """Start inference processing in a separate thread."""
+        inference_thread = threading.Thread(target=self.perform_obj_detection_and_inference)
+        inference_thread.start()
+
     def periodically_capture_and_process_frame(self):
         current_time = time.time()
         if current_time - self.last_capture_time > self.periodic_image_capture_delay:
             self.VideoSnap()
-            self.perform_obj_detection_and_inference()
+            self.run_inference_in_thread()
             self.last_capture_time = current_time
 
     def get_frame(self):
@@ -232,7 +237,7 @@ class Camera:
                     print("Motion detected and email sent.")
                     last_motion_time = current_time  # Update the last motion time
                     self.email_allowed = False  # Prevent further emails until condition resets
-                    # self.start_recording()  # Start recording when motion is detected
+                    self.start_recording()  # Start recording when motion is detected
                 else:
                     print("Motion detected but not eligible for email due to cooldown.")
             else:
@@ -244,7 +249,7 @@ class Camera:
                 self.email_allowed = True  # Re-enable sending emails after 30 seconds of no motion
                 print("30 seconds of no motion passed, emails re-enabled.")
                 self.last_motion_detected_time = current_time  # Reset to prevent message re-printing
-                # self.stop_recording()  # Stop recording when no motion is detected for 30 seconds
+                self.stop_recording()  # Stop recording when no motion is detected for 30 seconds
 
 ##############################################################################################################################################################
 
@@ -306,10 +311,17 @@ class StreamingOutput(io.BufferedIOBase):
 camera = Camera()
 
 def genFrames():
+    frame_count = 0
+    reset_interval = 1000  # Number of frames after which to reset the counter
     while True:
         frame = camera.get_frame()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+        if frame_count % 3 == 0:  # Only send every 3rd frame
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+        frame_count += 1
+        if frame_count >= reset_interval:
+            frame_count = 0  # Reset the counter
+
 
 ##############################################################################################################################################################
 
