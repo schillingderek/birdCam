@@ -200,7 +200,10 @@ class Camera:
     def periodically_capture_and_process_frame(self):
         current_time = time.time()
         if current_time - self.last_capture_time > self.periodic_image_capture_delay:
-            self.VideoSnap()
+            if not self.is_recording:
+                self.VideoSnap()
+            else:
+                self.capture_frame()
             self.run_inference_in_thread()
             self.last_capture_time = current_time
 
@@ -282,13 +285,24 @@ class Camera:
                                                                         # Picture Snap Handler
 
     def VideoSnap(self):
-        print("Snap")
+        print("Snapping Image at High Resolution")
         timestamp = datetime.now()
-        print(timestamp)
         self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
         self.job = self.camera.switch_mode_and_capture_file(self.still_config, self.file_output, wait=False)
         self.metadata = self.camera.wait(self.job)
+        self.uploadFile()
 
+
+    def capture_frame(self):
+        print("Capturing frame from video stream")
+        frame = self.streamOut.frame
+        image = Image.open(io.BytesIO(frame))
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
+        image.save(self.file_output)
+        self.uploadFile()
+
+    def uploadFile(self):
         print("Uploading file...")
         f = drive.CreateFile({"title": str(os.path.basename(self.file_output))})
         f.SetContentFile(str(self.file_output))
