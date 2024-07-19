@@ -154,7 +154,7 @@ def send_email(subject, body, sender, receiver, password):
 class Camera:
     def __init__(self):
         self.camera = picamera2.Picamera2()
-        self.lores_size = (800, 600)
+        self.lores_size = (640, 480)
         self.hires_size = (1920, 1080)
         self.video_config = self.camera.create_video_configuration(main={"size": self.hires_size, "format": "RGB888"},
                                                             lores={"size": self.lores_size, "format": "YUV420"})
