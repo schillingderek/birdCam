@@ -153,7 +153,7 @@ class Camera:
     def __init__(self):
         self.camera = picamera2.Picamera2()
         # self.video_config = self.camera.create_video_configuration(main={"size": (1280, 720)})
-        self.video_config = self.camera.create_video_configuration(main={"size": (1024, 600)})
+        self.video_config = self.camera.create_video_configuration(main={"size": (1138, 640)})
         self.still_config = self.camera.create_still_configuration(main={"size": (1920, 1080)})
         self.camera.configure(self.video_config)
         self.encoder = MJPEGEncoder(10000000)
@@ -404,7 +404,7 @@ def bird_info():
 def snap():
     """Snap Pane"""
     print("Taking a photo")
-    camera.VideoSnap()
+    camera.capture_frame()
     camera.perform_obj_detection_and_inference()
     return render_template('snap.html')
 
