@@ -153,10 +153,10 @@ class Camera:
     def __init__(self):
         self.camera = picamera2.Picamera2()
         # self.video_config = self.camera.create_video_configuration(main={"size": (1280, 720)})
-        self.video_config = self.camera.create_video_configuration(main={"size": (800, 600)})
+        self.video_config = self.camera.create_video_configuration(main={"size": (1024, 600)})
         self.still_config = self.camera.create_still_configuration()
         self.camera.configure(self.video_config)
-        self.encoder = MJPEGEncoder(5000000)
+        self.encoder = MJPEGEncoder(10000000)
         self.streamOut = StreamingOutput()
         self.streamOut2 = FileOutput(self.streamOut)
         self.encoder.output = [self.streamOut2]
