@@ -159,7 +159,11 @@ class Camera:
         self.video_config = self.camera.create_video_configuration(main={"size": self.hires_size, "format": "RGB888"},
                                                             lores={"size": self.lores_size, "format": "YUV420"})
         self.camera.configure(self.video_config)
-        self.encoder = MJPEGEncoder(10000000)
+        self.encoder = MJPEGEncoder()
+        self.encoder.framerate = 30
+        self.encoder.size = self.lores_size
+        self.encoder.format = "YUV420"
+        self.encoder.bitrate = 5000000
         self.streamOut = StreamingOutput()
         self.streamOut2 = FileOutput(self.streamOut)
         self.encoder.output = [self.streamOut2]
