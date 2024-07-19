@@ -293,7 +293,9 @@ class Camera:
 
     def capture_frame(self):
         print("Capturing frame from video stream")
-        frame = output.frame
+        request = self.camera.capture_request()
+        frame = request.image["main"]
+
         image = Image.open(io.BytesIO(frame))
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
