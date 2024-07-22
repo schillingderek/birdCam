@@ -118,14 +118,14 @@ def convert_h264_to_mp4(source_file_path, output_file_path):
 def upload_video(file_path, output_path):
     try:
         convert_h264_to_mp4(file_path, output_path)
-        # print(f"Conversion successful for {output_path}")
+        print(f"Conversion successful for {output_path}")
 
-        # print("Uploading file...")
+        print("Uploading file...")
         f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(output_path))})
         f.SetContentFile(str(output_path))
         f.Upload()
         f = None
-        # print("Upload Completed.")
+        print("Upload Completed.")
     except Exception as e:
         print(f"Failed to upload video: {e}")
 
@@ -153,7 +153,7 @@ def send_email(subject, body, sender, receiver, password):
             with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
                 server.login(sender, password)
                 server.send_message(msg)
-            # print("Email sent successfully!")
+            print("Email sent successfully!")
         except Exception as e:
             print(f"Failed to send email: {e}")
     thread = threading.Thread(target=email_thread)
@@ -188,7 +188,7 @@ class Camera:
         self.bird_id = []  # Change to a list to hold multiple detections
         self.bird_score = []  # Change to a list to hold multiple detections
         self.last_capture_time = time.time()
-        self.periodic_image_capture_delay = 15
+        self.periodic_image_capture_delay = 20
         self.drive_image_id = None
 
         # Start motion detection thread
@@ -196,13 +196,13 @@ class Camera:
         self.motion_detection_thread.start()
 
     def perform_obj_detection_and_inference(self):
-            # print("Processing frame at: ", self.file_output)
+            print("Processing frame at: ", self.file_output)
             try:
                 # Send the captured image to the Flask app running on your MacBook
                 url = "https://feed-the-birds-88.loca.lt/process_image"
                 data = {'file_id': self.drive_image_id}
                 response = requests.post(url, json=data)
-                # print("Frame processed")
+                print("Frame processed")
                 
                 if response.status_code == 200:
                     bird_results = response.json()
@@ -258,7 +258,7 @@ class Camera:
                 # Motion is detected and email is allowed
                 if last_motion_time is None or (current_time - last_motion_time > 30):
                     send_email("Motion Detected", "Motion has been detected by your camera.", sender_email, receiver_email, app_password)
-                    # print("Motion detected and email sent.")
+                    print("Motion detected and email sent.")
                     last_motion_time = current_time  # Update the last motion time
                     self.email_allowed = False  # Prevent further emails until condition resets
                     self.start_recording()  # Start recording when motion is detected
@@ -271,7 +271,7 @@ class Camera:
             # No motion detected
             if self.last_motion_detected_time and (current_time - self.last_motion_detected_time > 30) and not self.email_allowed:
                 self.email_allowed = True  # Re-enable sending emails after 30 seconds of no motion
-                # print("30 seconds of no motion passed, emails re-enabled.")
+                print("30 seconds of no motion passed, emails re-enabled.")
                 self.last_motion_detected_time = current_time  # Reset to prevent message re-printing
                 self.stop_recording()  # Stop recording when no motion is detected for 30 seconds
 
@@ -282,7 +282,7 @@ class Camera:
     def start_recording(self):
         global current_video_file
         if not self.is_recording:
-            # print("Starting video recording")
+            print("Starting video recording")
             basename = show_time()
             parent_dir = "/home/schillingderek/SecurityCamera/static/videos/"
             current_video_file = f"vid_{basename}.h264"
@@ -293,7 +293,7 @@ class Camera:
     def stop_recording(self):
         global current_video_file
         if self.is_recording:
-            # print("Stopping video recording")
+            print("Stopping video recording")
             output.stop()
             if current_video_file:
                 source_path = os.path.join('/home/schillingderek/SecurityCamera/static/videos/', current_video_file)
@@ -307,7 +307,7 @@ class Camera:
 
 
     def capture_frame(self):
-        # print("Capturing frame from video stream")
+        print("Capturing frame from video stream")
         frame = self.streamOut.frame
         image = Image.open(io.BytesIO(frame))
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -317,14 +317,14 @@ class Camera:
         self.perform_obj_detection_and_inference()
 
     def uploadFile(self):
-        # print("Uploading file...")
+        print("Uploading file...")
         f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(self.file_output))})
         f.SetContentFile(str(self.file_output))
         f.Upload()
         self.drive_image_id = f['id']
         print(self.drive_image_id)
         f = None
-        # print("Upload Completed.")
+        print("Upload Completed.")
 
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
