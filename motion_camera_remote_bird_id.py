@@ -105,14 +105,14 @@ def convert_h264_to_mp4(source_file_path, output_file_path):
 def upload_video(file_path, output_path):
     try:
         convert_h264_to_mp4(file_path, output_path)
-        print(f"Conversion successful for {output_path}")
+        # print(f"Conversion successful for {output_path}")
 
-        print("Uploading file...")
+        # print("Uploading file...")
         f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(output_path))})
         f.SetContentFile(str(output_path))
         f.Upload()
         f = None
-        print("Upload Completed.")
+        # print("Upload Completed.")
     except Exception as e:
         print(f"Failed to upload video: {e}")
 
@@ -256,27 +256,27 @@ class Camera:
 
                                                                         # Video Recording Handler
 
-    # def start_recording(self):
-    #     global current_video_file
-    #     if not self.is_recording:
-    #         print("Starting video recording")
-    #         basename = show_time()
-    #         parent_dir = "/home/schillingderek/SecurityCamera/static/videos/"
-    #         current_video_file = f"vid_{basename}.h264"
-    #         output.fileoutput = os.path.join(parent_dir, current_video_file)
-    #         output.start()
-    #         self.is_recording = True
+    def start_recording(self):
+        global current_video_file
+        if not self.is_recording:
+            # print("Starting video recording")
+            basename = show_time()
+            parent_dir = "/home/schillingderek/SecurityCamera/static/videos/"
+            current_video_file = f"vid_{basename}.h264"
+            output.fileoutput = os.path.join(parent_dir, current_video_file)
+            output.start()
+            self.is_recording = True
 
-    # def stop_recording(self):
-    #     global current_video_file
-    #     if self.is_recording:
-    #         print("Stopping video recording")
-    #         output.stop()
-    #         if current_video_file:
-    #             source_path = os.path.join('/home/schillingderek/SecurityCamera/static/videos/', current_video_file)
-    #             output_path = source_path.replace('.h264', '.mp4')
-    #             start_video_upload(source_path, output_path)
-    #         self.is_recording = False
+    def stop_recording(self):
+        global current_video_file
+        if self.is_recording:
+            # print("Stopping video recording")
+            output.stop()
+            if current_video_file:
+                source_path = os.path.join('/home/schillingderek/SecurityCamera/static/videos/', current_video_file)
+                output_path = source_path.replace('.h264', '.mp4')
+                start_video_upload(source_path, output_path)
+            self.is_recording = False
 
 ##############################################################################################################################################################
 
