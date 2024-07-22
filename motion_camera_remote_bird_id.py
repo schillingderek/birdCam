@@ -156,7 +156,7 @@ class Camera:
     def __init__(self):
         self.camera = picamera2.Picamera2()
         # self.lores_size = (640, 360)
-        self.hires_size = (960,720)
+        self.hires_size = (800,600)
         self.video_config = self.camera.create_video_configuration(main={"size": self.hires_size, "format": "RGB888"})
         self.camera.configure(self.video_config)
         self.encoder = MJPEGEncoder()
@@ -179,13 +179,13 @@ class Camera:
         self.drive_image_id = None
 
     def perform_obj_detection_and_inference(self):
-            print("Processing frame at: ", self.file_output)
+            # print("Processing frame at: ", self.file_output)
             try:
                 # Send the captured image to the Flask app running on your MacBook
                 url = "https://feed-the-birds-88.loca.lt/process_image"
                 data = {'file_id': self.drive_image_id}
                 response = requests.post(url, json=data)
-                print("Frame processed")
+                # print("Frame processed")
                 
                 if response.status_code == 200:
                     bird_results = response.json()
@@ -239,16 +239,16 @@ class Camera:
                     last_motion_time = current_time  # Update the last motion time
                     self.email_allowed = False  # Prevent further emails until condition resets
                     self.start_recording()  # Start recording when motion is detected
-                else:
-                    print("Motion detected but not eligible for email due to cooldown.")
-            else:
-                print("Motion detected but email not sent due to recent activity.")
+                # else:
+                #     print("Motion detected but not eligible for email due to cooldown.")
+            # else:
+            #     print("Motion detected but email not sent due to recent activity.")
             self.last_motion_detected_time = current_time
         else:
             # No motion detected
             if self.last_motion_detected_time and (current_time - self.last_motion_detected_time > 30) and not self.email_allowed:
                 self.email_allowed = True  # Re-enable sending emails after 30 seconds of no motion
-                print("30 seconds of no motion passed, emails re-enabled.")
+                # print("30 seconds of no motion passed, emails re-enabled.")
                 self.last_motion_detected_time = current_time  # Reset to prevent message re-printing
                 self.stop_recording()  # Stop recording when no motion is detected for 30 seconds
 
@@ -256,27 +256,27 @@ class Camera:
 
                                                                         # Video Recording Handler
 
-    def start_recording(self):
-        global current_video_file
-        if not self.is_recording:
-            print("Starting video recording")
-            basename = show_time()
-            parent_dir = "/home/schillingderek/SecurityCamera/static/videos/"
-            current_video_file = f"vid_{basename}.h264"
-            output.fileoutput = os.path.join(parent_dir, current_video_file)
-            output.start()
-            self.is_recording = True
+    # def start_recording(self):
+    #     global current_video_file
+    #     if not self.is_recording:
+    #         print("Starting video recording")
+    #         basename = show_time()
+    #         parent_dir = "/home/schillingderek/SecurityCamera/static/videos/"
+    #         current_video_file = f"vid_{basename}.h264"
+    #         output.fileoutput = os.path.join(parent_dir, current_video_file)
+    #         output.start()
+    #         self.is_recording = True
 
-    def stop_recording(self):
-        global current_video_file
-        if self.is_recording:
-            print("Stopping video recording")
-            output.stop()
-            if current_video_file:
-                source_path = os.path.join('/home/schillingderek/SecurityCamera/static/videos/', current_video_file)
-                output_path = source_path.replace('.h264', '.mp4')
-                start_video_upload(source_path, output_path)
-            self.is_recording = False
+    # def stop_recording(self):
+    #     global current_video_file
+    #     if self.is_recording:
+    #         print("Stopping video recording")
+    #         output.stop()
+    #         if current_video_file:
+    #             source_path = os.path.join('/home/schillingderek/SecurityCamera/static/videos/', current_video_file)
+    #             output_path = source_path.replace('.h264', '.mp4')
+    #             start_video_upload(source_path, output_path)
+    #         self.is_recording = False
 
 ##############################################################################################################################################################
 
@@ -284,7 +284,7 @@ class Camera:
 
 
     def capture_frame(self):
-        print("Capturing frame from video stream")
+        # print("Capturing frame from video stream")
         frame = self.streamOut.frame
         image = Image.open(io.BytesIO(frame))
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -295,14 +295,14 @@ class Camera:
         inference_thread.start()
 
     def uploadFile(self):
-        print("Uploading file...")
+        # print("Uploading file...")
         f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(self.file_output))})
         f.SetContentFile(str(self.file_output))
         f.Upload()
         self.drive_image_id = f['id']
         print(self.drive_image_id)
         f = None
-        print("Upload Completed.")
+        # print("Upload Completed.")
 
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
@@ -382,8 +382,8 @@ def api_files():
     try:
         images = [img for img in os.listdir(image_directory) if img.endswith(('.jpg', '.jpeg', '.png'))]
         videos = [file for file in os.listdir(video_directory) if file.endswith('.mp4')]
-        print("Images found:", images)  # Debug print
-        print("Videos found:", videos)  # Debug print
+        # print("Images found:", images)  # Debug print
+        # print("Videos found:", videos)  # Debug print
         return jsonify({'images': images, 'videos': videos})
     except Exception as e:
         print("Error in api_files:", str(e))  # Debug print

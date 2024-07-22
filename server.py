@@ -64,7 +64,9 @@ def detect_birds_yolo(image_path):
     detection_model = YOLO("yolov8s.pt")
     im1 = Image.open(image_path)
     results = detection_model.predict(source=im1, save=False)
-    return results
+
+    bird_boxes = [box for result in results for box in result.boxes if box.cls == 14]
+    return bird_boxes
 
 # Crop sub-images from bounding boxes
 def crop_sub_images(image, results):
@@ -88,9 +90,12 @@ def process_image():
     driveImage.GetContentFile(image_path)
 
     # Detect birds
-    results = detect_birds_yolo(image_path)
+    bird_boxes = detect_birds_yolo(image_path)
+
+    if not bird_boxes:
+        return jsonify([])
     image = Image.open(image_path)
-    cropped_images = crop_sub_images(image, results)
+    cropped_images = crop_sub_images(image, bird_boxes)
 
     results = []
     for sub_image in cropped_images:
