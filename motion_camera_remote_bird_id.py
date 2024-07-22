@@ -197,16 +197,11 @@ class Camera:
             except Exception as e:
                 print(f"Error sending image to server: {e}")
 
-    def run_inference_in_thread(self):
-        """Start inference processing in a separate thread."""
-        inference_thread = threading.Thread(target=self.perform_obj_detection_and_inference)
-        inference_thread.start()
-
     def periodically_capture_and_process_frame(self):
         current_time = time.time()
         if current_time - self.last_capture_time > self.periodic_image_capture_delay:
-            self.capture_frame()
-            self.run_inference_in_thread()
+            capture_frame_thread = threading.Thread(target=self.capture_frame)
+            capture_frame_thread.start()
             self.last_capture_time = current_time
 
     def get_frame(self):
@@ -296,6 +291,8 @@ class Camera:
         self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
         image.save(self.file_output)
         self.uploadFile()
+        inference_thread = threading.Thread(target=self.perform_obj_detection_and_inference)
+        inference_thread.start()
 
     def uploadFile(self):
         print("Uploading file...")
@@ -370,13 +367,13 @@ def bird_info():
     bird_info_list = [{'bird_id': bird_id, 'bird_score': bird_score} for bird_id, bird_score in zip(bird_ids, bird_scores)]
     return jsonify(bird_info_list)
 
-@app.route('/snap.html')
-def snap():
-    """Snap Pane"""
-    print("Taking a photo")
-    camera.capture_frame()
-    camera.perform_obj_detection_and_inference()
-    return render_template('snap.html')
+# @app.route('/snap.html')
+# def snap():
+#     """Snap Pane"""
+#     print("Taking a photo")
+#     camera.capture_frame()
+#     camera.perform_obj_detection_and_inference()
+#     return render_template('snap.html')
 
 @app.route('/api/files')
 def api_files():
