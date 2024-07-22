@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 import os
-import io
 from PIL import Image
 import numpy as np
 import torch
@@ -64,19 +63,23 @@ def detect_birds_yolo(image_path):
     detection_model = YOLO("yolov8s.pt")
     im1 = Image.open(image_path)
     results = detection_model.predict(source=im1, save=False)
-
-    bird_boxes = [box for result in results for box in result.boxes if box.cls == 14]
-    return bird_boxes
-
-# Crop sub-images from bounding boxes
-def crop_sub_images(image, results):
-    sub_images = []
+    
+    bird_boxes = []
     for result in results:
         boxes = result.boxes
         for box in boxes:
-            x1, y1, x2, y2 = map(int, box.xyxy[0])  # Extract bounding box coordinates
-            sub_image = image.crop((x1, y1, x2, y2))
-            sub_images.append(sub_image)
+            if box.cls == 14:  #Number of the bird class
+                bird_boxes.append(box)
+    
+    return bird_boxes
+
+# Crop sub-images from bounding boxes
+def crop_sub_images(image, boxes):
+    sub_images = []
+    for box in boxes:
+        x1, y1, x2, y2 = map(int, box.xyxy[0])  # Extract bounding box coordinates
+        sub_image = image.crop((x1, y1, x2, y2))
+        sub_images.append(sub_image)
     return sub_images
 
 @app.route('/process_image', methods=['POST'])
@@ -91,9 +94,9 @@ def process_image():
 
     # Detect birds
     bird_boxes = detect_birds_yolo(image_path)
-
     if not bird_boxes:
-        return jsonify([])
+        return jsonify([])  # Return an empty list if no birds are detected
+
     image = Image.open(image_path)
     cropped_images = crop_sub_images(image, bird_boxes)
 

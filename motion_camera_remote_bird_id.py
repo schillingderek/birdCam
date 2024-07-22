@@ -140,7 +140,7 @@ def send_email(subject, body, sender, receiver, password):
             with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
                 server.login(sender, password)
                 server.send_message(msg)
-            print("Email sent successfully!")
+            # print("Email sent successfully!")
         except Exception as e:
             print(f"Failed to send email: {e}")
     thread = threading.Thread(target=email_thread)
@@ -235,7 +235,7 @@ class Camera:
                 # Motion is detected and email is allowed
                 if last_motion_time is None or (current_time - last_motion_time > 30):
                     send_email("Motion Detected", "Motion has been detected by your camera.", sender_email, receiver_email, app_password)
-                    print("Motion detected and email sent.")
+                    # print("Motion detected and email sent.")
                     last_motion_time = current_time  # Update the last motion time
                     self.email_allowed = False  # Prevent further emails until condition resets
                     self.start_recording()  # Start recording when motion is detected
@@ -291,8 +291,7 @@ class Camera:
         self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
         image.save(self.file_output)
         self.uploadFile()
-        inference_thread = threading.Thread(target=self.perform_obj_detection_and_inference)
-        inference_thread.start()
+        self.perform_obj_detection_and_inference()
 
     def uploadFile(self):
         # print("Uploading file...")
