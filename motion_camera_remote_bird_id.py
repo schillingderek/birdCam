@@ -20,6 +20,8 @@ from pydrive.auth import GoogleAuth
 
 import requests
 
+import piexif
+
 import subprocess
 from flask import Flask, render_template, Response, jsonify, request, session, redirect, url_for
 from flask_restful import Resource, Api, reqparse, abort
@@ -86,6 +88,15 @@ google_drive_folder_id = "1Gut6eCG_p6WmLDRj3w3oHFOiqMHlXkFr"
 PIR_PIN = 4
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(PIR_PIN, GPIO.IN)
+
+ROTATION = 270
+rotation_header = bytes()
+if ROTATION:
+    WIDTH, HEIGHT = HEIGHT, WIDTH
+    code = 6 if ROTATION == 90 else 8
+    exif_bytes = piexif.dump({'0th': {piexif.ImageIFD.Orientation: code}})
+    exif_len = len(exif_bytes) + 2
+    rotation_header = bytes.fromhex('ffe1') + exif_len.to_bytes(2, 'big') + exif_bytes
 
 ##############################################################################################################################################################
 
@@ -310,7 +321,7 @@ class StreamingOutput(io.BufferedIOBase):
 
     def write(self, buf):
         with self.condition:
-            self.frame = buf
+            self.frame = buf[:2] + rotation_header + buf[2:]
             self.condition.notify_all()
 
 camera = Camera()
