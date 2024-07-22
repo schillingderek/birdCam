@@ -109,7 +109,11 @@ if ROTATION:
 def convert_h264_to_mp4(source_file_path, output_file_path):
     try:
         # Command to convert h264 to mp4
-        command = ['ffmpeg', '-i', source_file_path, '-c', 'copy', output_file_path]
+        command = [
+            'ffmpeg', '-i', source_file_path,
+            '-vf', 'transpose=2',  # 'transpose=2' rotates 270 degrees
+            '-c', 'copy', output_file_path
+        ]        
         subprocess.run(command, check=True)
         print(f"Conversion successful: {output_file_path}")
     except subprocess.CalledProcessError as e:
@@ -310,9 +314,10 @@ class Camera:
         print("Capturing frame from video stream")
         frame = self.streamOut.frame
         image = Image.open(io.BytesIO(frame))
+        rotated_image = image.rotate(270, expand=True)  # Rotate the image by 270 degrees
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
-        image.save(self.file_output)
+        rotated_image.save(self.file_output)
         self.uploadFile()
         self.perform_obj_detection_and_inference()
 
