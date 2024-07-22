@@ -191,6 +191,10 @@ class Camera:
         self.periodic_image_capture_delay = 15
         self.drive_image_id = None
 
+        # Start motion detection thread
+        self.motion_detection_thread = threading.Thread(target=self.motion_detection_loop)
+        self.motion_detection_thread.start()
+
     def perform_obj_detection_and_inference(self):
             # print("Processing frame at: ", self.file_output)
             try:
@@ -222,17 +226,23 @@ class Camera:
         with self.streamOut.condition:
             self.streamOut.condition.wait()
             frame_data = self.streamOut.frame
-        image = Image.open(io.BytesIO(frame_data)).convert('L')  # Convert to grayscale
-        image = image.filter(ImageFilter.GaussianBlur(radius=2))  # Apply Gaussian blur
-        if self.previous_image is not None:
-            self.detect_motion(self.previous_image, image)
-        self.previous_image = image
         return frame_data
+
 
 ##############################################################################################################################################################
 
                                                                         # Motion Detection Handler
 
+    def motion_detection_loop(self):
+        while True:
+            frame_data = self.get_frame()
+            image = Image.open(io.BytesIO(frame_data)).convert('L')  # Convert to grayscale
+            image = image.filter(ImageFilter.GaussianBlur(radius=2))  # Apply Gaussian blur
+            if self.previous_image is not None:
+                self.detect_motion(self.previous_image, image)
+            self.previous_image = image
+            time.sleep(1)
+    
     def detect_motion(self, prev_image, current_image):
         global last_motion_time, current_video_file
         current_time = time.time()
