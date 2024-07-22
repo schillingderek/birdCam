@@ -41,14 +41,6 @@
                 padding-right: 15px; /* Add right padding on mobile */
             }
         }
-        .info-container {
-            background-color: #333333;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-            text-align: center;
-            margin-top: 20px;
-        }
     </style>
 </head>
 <body style="background-color: #121212; color: white;">
@@ -67,10 +59,12 @@
                     <button id="Snap" type="button" title="take jpg file" onclick="window.open('/snap.html', 'infstate'); return false;" style="background-color: #4CAF50; color: white; padding: 15px 20px; border-radius: 5px; margin-top: 10px; width: 100%; cursor: pointer; font-size: 18px;">Snap</button>
                     <button onclick="window.location.href='/files'" style="background-color: #009688; color: white; padding: 12px 24px; border-radius: 5px; margin-top: 10px; cursor: pointer; width: 100%; font-size: 18px;">Files</button>
                 </div>
-                <div class="info-container">
+            </div>
+            <div class="col-md-4 col-sm-12 desktop-padding mobile-settings">
+                <div style="background-color: #333333; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.5); text-align: center;">
                     <h3 style="margin-bottom: 10px;">Info</h3>
                     <div>
-                        <iframe src="info.html" width="100%" height="220" style="border:none;" name="infstate"></iframe>
+                        <iframe src="info.html" width="300" height="220" style="border:none;" name="infstate"></iframe>
                     </div>
                 </div>
             </div>
