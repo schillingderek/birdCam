@@ -156,8 +156,8 @@ class Camera:
     def __init__(self):
         self.camera = picamera2.Picamera2()
         # self.lores_size = (640, 360)
-        self.hires_size = (800,600)
-        self.video_config = self.camera.create_video_configuration(main={"size": self.hires_size, "format": "RGB888"})
+        self.hires_size = (960,720)
+        self.video_config = self.camera.create_video_configuration(main={"size": self.hires_size, "format": "RGB888"}, trasnform=Transform(90))
         self.camera.configure(self.video_config)
         self.encoder = MJPEGEncoder()
         self.encoder.bitrate = 10000000
