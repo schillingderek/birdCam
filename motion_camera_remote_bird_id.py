@@ -90,6 +90,8 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(PIR_PIN, GPIO.IN)
 
 ROTATION = 270
+WIDTH = 800
+HEIGHT = 600
 rotation_header = bytes()
 if ROTATION:
     WIDTH, HEIGHT = HEIGHT, WIDTH
@@ -167,7 +169,7 @@ class Camera:
     def __init__(self):
         self.camera = picamera2.Picamera2()
         # self.lores_size = (640, 360)
-        self.hires_size = (800,600)
+        self.hires_size = (WIDTH,HEIGHT)
         self.video_config = self.camera.create_video_configuration(main={"size": self.hires_size, "format": "RGB888"})
         self.camera.configure(self.video_config)
         self.encoder = MJPEGEncoder()
