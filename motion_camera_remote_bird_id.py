@@ -199,15 +199,6 @@ class Camera:
         self.motion_detection_thread = threading.Thread(target=self.motion_detection_loop)
         self.motion_detection_thread.start()
 
-        self.feed_watchdog_thread = threading.Thread(target=self.feed_watchdog)
-        self.feed_watchdog_thread.start()
-
-    def feed_watchdog(self):
-        while True:
-            with open('/dev/watchdog', 'w') as watchdog:
-                watchdog.write(b'\0')  # Writing to the watchdog device to reset it
-            time.sleep(10)  # Sleep for 10 seconds before resetting again
-
     def perform_obj_detection_and_inference(self):
             print("Processing frame at: ", self.file_output)
             try:
