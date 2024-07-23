@@ -110,12 +110,11 @@ def convert_h264_to_mp4(source_file_path, output_file_path):
         # Command to convert h264 to mp4
         command = [
             'ffmpeg', '-i', source_file_path,
-            '-vf', 'transpose=2',  # 'transpose=2' rotates 270 degrees
-            '-c:v', 'libx264',      # Use libx264 codec for encoding
-            '-crf', '23',           # Constant Rate Factor for quality (0-51, where lower is better)
-            '-preset', 'medium',    # Encoding speed (ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow)
+            '-vf', 'transpose=2',
+            '-c:v', 'libx264',  # Use x264 for software encoding
+            '-preset', 'ultrafast',  # Faster encoding, but larger file size
             output_file_path
-        ]         
+        ]     
         subprocess.run(command, check=True)
         print(f"Conversion successful: {output_file_path}")
     except subprocess.CalledProcessError as e:
@@ -316,7 +315,7 @@ class Camera:
         print("Capturing frame from video stream")
         frame = self.streamOut.frame
         image = Image.open(io.BytesIO(frame))
-        rotated_image = image.rotate(270, expand=True)  # Rotate the image by 270 degrees
+        rotated_image = image.rotate(90, expand=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.file_output = f"{images_dir}/snap_{timestamp}.jpg"
         rotated_image.save(self.file_output)
