@@ -11,7 +11,6 @@ from picamera2 import Picamera2
 from picamera2.encoders import H264Encoder, MJPEGEncoder, Quality
 from picamera2.outputs import FileOutput, CircularOutput
 import io
-import cv2
 
 import RPi.GPIO as GPIO
 
@@ -26,7 +25,6 @@ import subprocess
 from flask import Flask, render_template, Response, jsonify, request, session, redirect, url_for
 from flask_restful import Resource, Api, reqparse, abort
 from PIL import Image
-import atexit
 from datetime import datetime
 from threading import Condition
 import time
@@ -36,14 +34,11 @@ import threading
 from dotenv import load_dotenv
 
 from PIL import Image, ImageChops, ImageFilter
-from libcamera import Transform
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 
 load_dotenv()
 
 app = Flask(__name__, template_folder='template', static_url_path='/static')
-app.secret_key = os.getenv('APP_SECRET_KEY')  # Change this to a random secret key
+app.secret_key = os.getenv('APP_SECRET_KEY')
 api = Api(app)
 
 encoder = H264Encoder()
@@ -88,6 +83,10 @@ google_drive_folder_id = "1Gut6eCG_p6WmLDRj3w3oHFOiqMHlXkFr"
 PIR_PIN = 4
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(PIR_PIN, GPIO.IN)
+
+base_dir = "/root/birdcam"
+video_dir = base_dir + "/static/videos/"
+images_dir = base_dir + "/static/images"
 
 ROTATION = 270
 WIDTH = 800
@@ -288,7 +287,7 @@ class Camera:
         if not self.is_recording:
             print("Starting video recording")
             basename = show_time()
-            parent_dir = "/home/schillingderek/SecurityCamera/static/videos/"
+            parent_dir = video_dir
             current_video_file = f"vid_{basename}.h264"
             output.fileoutput = os.path.join(parent_dir, current_video_file)
             output.start()
@@ -300,7 +299,7 @@ class Camera:
             print("Stopping video recording")
             output.stop()
             if current_video_file:
-                source_path = os.path.join('/home/schillingderek/SecurityCamera/static/videos/', current_video_file)
+                source_path = os.path.join(video_dir, current_video_file)
                 output_path = source_path.replace('.h264', '.mp4')
                 start_video_upload(source_path, output_path)
             self.is_recording = False
@@ -316,7 +315,7 @@ class Camera:
         image = Image.open(io.BytesIO(frame))
         rotated_image = image.rotate(270, expand=True)  # Rotate the image by 270 degrees
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.file_output = f"/home/schillingderek/SecurityCamera/static/images/snap_{timestamp}.jpg"
+        self.file_output = images_dir + "/snap_{timestamp}.jpg"
         rotated_image.save(self.file_output)
         self.uploadFile()
         self.perform_obj_detection_and_inference()
@@ -404,11 +403,10 @@ def bird_info():
 
 @app.route('/api/files')
 def api_files():
-    image_directory = '/home/schillingderek/SecurityCamera/static/images/'
-    video_directory = '/home/schillingderek/SecurityCamera/static/videos/'
+
     try:
-        images = [img for img in os.listdir(image_directory) if img.endswith(('.jpg', '.jpeg', '.png'))]
-        videos = [file for file in os.listdir(video_directory) if file.endswith('.mp4')]
+        images = [img for img in os.listdir(images_dir) if img.endswith(('.jpg', '.jpeg', '.png'))]
+        videos = [file for file in os.listdir(video_dir) if file.endswith('.mp4')]
         # print("Images found:", images)  # Debug print
         # print("Videos found:", videos)  # Debug print
         return jsonify({'images': images, 'videos': videos})
@@ -420,9 +418,9 @@ def api_files():
 def delete_file(filename):
     # Determine if it's a video or picture based on the extension or another method
     if filename.endswith('.mp4') or filename.endswith('.mkv'):
-        directory = '/home/schillingderek/SecurityCamera/static/videos'
+        directory = video_dir
     else:
-        directory = '/home/schillingderek/SecurityCamera/static/images'
+        directory = images_dir
     file_path = os.path.join(directory, filename)
     try:
         os.remove(file_path)
@@ -432,11 +430,9 @@ def delete_file(filename):
 
 @app.route('/files')
 def files():
-    image_directory = '/home/schillingderek/SecurityCamera/static/images/'
-    video_directory = '/home/schillingderek/SecurityCamera/static/videos/'
     try:
-        images = os.listdir(image_directory)
-        videos = [file for file in os.listdir(video_directory) if file.endswith(('.mp4'))]  # Assuming video formats
+        images = os.listdir(images_dir)
+        videos = [file for file in os.listdir(video_dir) if file.endswith(('.mp4'))]  # Assuming video formats
         # Filtering out system files like .DS_Store which might be present in directories
         images = [img for img in images if img.endswith(('.jpg', '.jpeg', '.png'))]
         return render_template('files.html', images=images, videos=videos)
