@@ -11,70 +11,105 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="/static/boogi_script.js"></script>
     <style>
-        @media (min-width: 992px) { /* Desktop and larger devices */
-            .desktop-padding {
-                padding-top: 20px; /* Add padding on top for spacing */
+        body {
+            background-color: #121212;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+        .container-fluid {
+            padding: 0;
+        }
+        .streaming-container, .info-container {
+            background-color: #333333;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .streaming-container img {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+        .logout-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: red;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        button {
+            background-color: #009688;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            border: none;
+        }
+        button:hover {
+            background-color: #00796b;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        @media (max-width: 800px) {
+            .container-fluid {
+                padding: 0;
             }
-            .desktop-spacing-right {
-                padding-right: 20px; /* Add spacing between columns */
-            }
-            .streaming-container {
-                position: relative;
-                max-width: 80%; /* Limit max width of the streaming container */
-                margin: auto; /* Center the streaming container */
+            .streaming-container, .info-container {
+                margin: 0;
+                padding: 5px;
             }
             .logout-button {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                background-color: red;
-                color: white;
-                padding: 15px 30px;
-                border-radius: 8px;
-                font-size: 18px;
+                top: 0;
+                right: 0;
+                padding: 8px 12px;
+                font-size: 12px;
             }
-        }
-        @media (max-width: 991px) { /* Tablets and mobile devices */
-            .mobile-settings {
-                position: static;
-                padding-left: 15px; /* Add left padding on mobile */
-                padding-right: 15px; /* Add right padding on mobile */
+            button {
+                font-size: 14px;
+                padding: 8px;
             }
         }
     </style>
 </head>
-<body style="background-color: #121212; color: white;">
+<body>
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-8 col-sm-12 desktop-padding desktop-spacing-right mobile-settings">
-                <div class="streaming-container" style="background-color: #333333; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.5); margin-bottom: 20px; border-radius: 8px; text-align: center; position: relative;">
+            <!-- Streaming Container -->
+            <div class="col-xs-12">
+                <div class="streaming-container" style="position: relative;">
                     <a href="{{ url_for('logout') }}" class="logout-button" target="_top">Logout</a>
-                    <h1 style="margin-bottom: 10px; padding-bottom: 10px;">Streaming</h1>
-                    <span id="rntime" style="display: block; font-size: 18px; margin-bottom: 10px; padding-bottom: 10px;"></span>
+                    <h1 style="font-size: 20px; margin: 0;">Streaming</h1>
+                    <span id="rntime" style="display: block; font-size: 16px; margin: 10px 0;"></span>
                     <div>
-                        <img src="{{'cam'}}" style="width: 100%; height: auto; border-radius: 4px;">
+                        <img src="{{'cam'}}" alt="Camera Stream">
                     </div>
-                    <!-- <button id="StartR" type="button" title="record video file" onclick="window.open('/startRec.html', 'infstate'); return false;" style="background-color: #4CAF50; color: white; padding: 15px 20px; border-radius: 5px; margin-top: 10px; width: 100%; cursor: pointer; font-size: 18px;">Start</button>
-                    <button id="StopR" type="button" title="record video file" onclick="window.open('/stopRec.html', 'infstate'); return false;" style="background-color: #f44336; color: white; padding: 15px 20px; border-radius: 5px; margin-top: 10px; width: 100%; cursor: pointer; font-size: 18px;">Stop</button> -->
-                    <!-- <button id="Snap" type="button" title="take jpg file" onclick="window.open('/snap.html', 'infstate'); return false;" style="background-color: #4CAF50; color: white; padding: 15px 20px; border-radius: 5px; margin-top: 10px; width: 100%; cursor: pointer; font-size: 18px;">Snap</button> -->
-                    <button onclick="window.location.href='/files'" style="background-color: #009688; color: white; padding: 12px 24px; border-radius: 5px; margin-top: 10px; cursor: pointer; width: 100%; font-size: 18px;">Files</button>
+                    <button onclick="window.location.href='/files'">Files</button>
                 </div>
             </div>
-            <div class="col-md-4 col-sm-12 desktop-padding mobile-settings">
-                <div style="background-color: #333333; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.5); text-align: center;">
-                    <h3 style="margin-bottom: 10px;">Info</h3>
-                    <div>
-                        <iframe src="info.html" width="300" height="220" style="border:none;" name="infstate"></iframe>
-                    </div>
+            <!-- Info Container -->
+            <div class="col-xs-12">
+                <div class="info-container">
+                    <h3 style="font-size: 18px; margin: 0;">Info</h3>
+                    <iframe src="info.html"></iframe>
                 </div>
             </div>
         </div>
     </div>
 <script>
     window.onload = function timeNow() {
-        var rntime = getTimeNow();
-
-        // 12-hour format with AM/PM
         var date = new Date();
         var hours = date.getHours();
         var minutes = date.getMinutes();
