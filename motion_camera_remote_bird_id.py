@@ -89,8 +89,8 @@ video_dir = base_dir + "/static/videos/"
 images_dir = base_dir + "/static/images"
 
 ROTATION = 270
-WIDTH = 800
-HEIGHT = 600
+WIDTH = 1200
+HEIGHT = 720
 rotation_header = bytes()
 if ROTATION:
     WIDTH, HEIGHT = HEIGHT, WIDTH
