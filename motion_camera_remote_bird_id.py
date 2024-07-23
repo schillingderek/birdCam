@@ -311,34 +311,14 @@ class Camera:
 
     def capture_frame(self):
         print("Capturing frame from video stream")
-        # frame = self.streamOut.frame
-        # image = Image.open(io.BytesIO(frame))
-        # rotated_image = image.rotate(270, expand=True)  # Rotate the image by 270 degrees
-        # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        # self.file_output = f"{images_dir}/snap_{timestamp}.jpg"
-        # rotated_image.save(self.file_output)
-        # self.uploadFile()
-        # self.perform_obj_detection_and_inference()
-
-        # print("Snap")
-        timestamp = datetime.now()
-        print(timestamp)
-        self.still_config = self.camera.create_still_configuration()
+        frame = self.streamOut.frame
+        image = Image.open(io.BytesIO(frame))
+        rotated_image = image.rotate(270, expand=True)  # Rotate the image by 270 degrees
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.file_output = f"{images_dir}/snap_{timestamp}.jpg"
-        self.job = self.camera.switch_mode_and_capture_file(self.still_config, self.file_output, wait=False)
-        self.metadata = self.camera.wait(self.job)
-
-        self.rotate_image(self.file_output, 270)
-
+        rotated_image.save(self.file_output)
         self.uploadFile()
         self.perform_obj_detection_and_inference()
-
-    def rotate_image(self, file_path, degrees):
-        with Image.open(file_path) as img:
-            # Rotate image
-            rotated_img = img.rotate(degrees, expand=True)
-            # Save the rotated image
-            rotated_img.save(file_path)
 
     def uploadFile(self):
         print("Uploading file...")
