@@ -315,7 +315,7 @@ class Camera:
         image = Image.open(io.BytesIO(frame))
         rotated_image = image.rotate(270, expand=True)  # Rotate the image by 270 degrees
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.file_output = images_dir + "/snap_{timestamp}.jpg"
+        self.file_output = f"{images_dir}/snap_{timestamp}.jpg"
         rotated_image.save(self.file_output)
         self.uploadFile()
         self.perform_obj_detection_and_inference()
