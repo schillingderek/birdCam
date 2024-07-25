@@ -239,10 +239,9 @@ class Camera:
 
     def motion_detection_loop(self):
         while True:
-            if GPIO.input(PIR_PIN):
-                frame_data = self.get_frame()
-                image = Image.open(io.BytesIO(frame_data)).convert('L')  # Convert to grayscale
-                image = image.filter(ImageFilter.GaussianBlur(radius=2))  # Apply Gaussian blur
+            frame_data = self.get_frame()
+            image = Image.open(io.BytesIO(frame_data)).convert('L')  # Convert to grayscale
+            image = image.filter(ImageFilter.GaussianBlur(radius=2))  # Apply Gaussian blur
             if self.previous_image is not None:
                 self.detect_motion(self.previous_image, image)
             self.previous_image = image
