@@ -8,7 +8,7 @@
 
 import picamera2 
 from picamera2 import Picamera2
-from picamera2.encoders import H264Encoder, MJPEGEncoder
+from picamera2.encoders import H264Encoder, MJPEGEncoder, Quality
 from picamera2.outputs import FileOutput, CircularOutput
 import io
 
@@ -116,23 +116,21 @@ def convert_h264_to_mp4(source_file_path, output_file_path):
             output_file_path
         ]     
         subprocess.run(command, check=True)
+        print(f"Conversion successful: {output_file_path}")
     except subprocess.CalledProcessError as e:
         print(f"Error during conversion: {e}")
 
 def upload_video(file_path, output_path):
     try:
-        print("Starting conversion")
         convert_h264_to_mp4(file_path, output_path)
         print(f"Conversion successful for {output_path}")
 
-        # print("sleeping 30")
-        # time.sleep(30)
-        # print("Uploading file...", output_path)
-        # f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(output_path))})
-        # f.SetContentFile(str(output_path))
-        # f.Upload()
-        # f = None
-        # print("Upload Completed.")
+        print("Uploading file...")
+        f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(output_path))})
+        f.SetContentFile(str(output_path))
+        f.Upload()
+        f = None
+        print("Upload Completed.")
     except Exception as e:
         print(f"Failed to upload video: {e}")
 
@@ -175,6 +173,7 @@ def send_email(subject, body, sender, receiver, password):
 class Camera:
     def __init__(self):
         self.camera = picamera2.Picamera2()
+        # self.lores_size = (640, 360)
         self.hires_size = (WIDTH,HEIGHT)
         self.video_config = self.camera.create_video_configuration(main={"size": self.hires_size})
         self.camera.configure(self.video_config)
@@ -191,8 +190,8 @@ class Camera:
         self.email_allowed = True
         self.last_motion_detected_time = None  # Initialize to None
         self.is_recording = False  # Track if video recording is in progress
-        self.bird_id = []
-        self.bird_score = []
+        self.bird_id = []  # Change to a list to hold multiple detections
+        self.bird_score = []  # Change to a list to hold multiple detections
         self.last_capture_time = time.time()
         self.periodic_image_capture_delay = 20
         self.drive_image_id = None
@@ -257,8 +256,8 @@ class Camera:
         count = np.sum(np.array(diff) > 0)
         pir_motion_sensor = GPIO.input(PIR_PIN)
         image_motion_sensor = count > 500
-        # if self.is_recording:
-        #     self.periodically_capture_and_process_frame()
+        if self.is_recording:
+            self.periodically_capture_and_process_frame()
         if image_motion_sensor and pir_motion_sensor:  # Sensitivity threshold for motion AND PIR motion sensor input
             if self.email_allowed:
                 # Motion is detected and email is allowed
@@ -329,6 +328,7 @@ class Camera:
         f.SetContentFile(str(self.file_output))
         f.Upload()
         self.drive_image_id = f['id']
+        print(self.drive_image_id)
         f = None
         print("Upload Completed.")
 
