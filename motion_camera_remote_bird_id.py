@@ -251,7 +251,6 @@ class Camera:
             if self.previous_image is not None:
                 self.detect_motion(self.previous_image, image)
             self.previous_image = image
-            time.sleep(1)
     
     def detect_motion(self, prev_image, current_image):
         global last_motion_time, current_video_file
