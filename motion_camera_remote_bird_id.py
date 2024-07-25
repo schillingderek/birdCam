@@ -113,7 +113,13 @@ if ROTATION:
 def convert_h264_to_mp4(source_file_path, output_file_path):
     try:
         # Command to convert h264 to mp4
-        command = ['ffmpeg', '-i', source_file_path, '-c', 'copy', output_file_path]
+        command = [
+            'ffmpeg', 
+            '-i', source_file_path, 
+            '-c', 'copy',  # Copy the video stream without re-encoding
+            '-metadata:s:v:0', f'rotate={270}',  # Add rotation metadata
+            output_file_path
+        ]
         subprocess.run(command, check=True)
         logging.info(f"Conversion successful: {output_file_path}")
     except subprocess.CalledProcessError as e:
