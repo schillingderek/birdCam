@@ -130,12 +130,12 @@ def upload_video(file_path, output_path):
         convert_h264_to_mp4(file_path, output_path)
         logging.info(f"Conversion successful for {output_path}")
 
-        logging.info("Uploading file...")
-        f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(output_path))})
-        f.SetContentFile(str(output_path))
-        f.Upload()
-        f = None
-        logging.info("Upload Completed.")
+        # logging.info("Uploading file...")
+        # f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(output_path))})
+        # f.SetContentFile(str(output_path))
+        # f.Upload()
+        # f = None
+        # logging.info("Upload Completed.")
     except Exception as e:
         logging.info(f"Failed to upload video: {e}")
 
@@ -308,7 +308,7 @@ class Camera:
             if current_video_file:
                 source_path = os.path.join(video_dir, current_video_file)
                 output_path = source_path.replace('.h264', '.mp4')
-                # start_video_upload(source_path, output_path)
+                start_video_upload(source_path, output_path)
             self.is_recording = False
 
 ##############################################################################################################################################################
