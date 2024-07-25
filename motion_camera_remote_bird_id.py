@@ -8,7 +8,7 @@
 
 import picamera2 
 from picamera2 import Picamera2
-from picamera2.encoders import H264Encoder, MJPEGEncoder, Quality
+from picamera2.encoders import H264Encoder, MJPEGEncoder
 from picamera2.outputs import FileOutput, CircularOutput
 import io
 
@@ -42,7 +42,7 @@ app.secret_key = os.getenv('APP_SECRET_KEY')
 api = Api(app)
 
 encoder = H264Encoder()
-output = CircularOutput()
+output = FileOutput()
 
 import subprocess
 import smtplib
@@ -173,7 +173,6 @@ def send_email(subject, body, sender, receiver, password):
 class Camera:
     def __init__(self):
         self.camera = picamera2.Picamera2()
-        # self.lores_size = (640, 360)
         self.hires_size = (WIDTH,HEIGHT)
         self.video_config = self.camera.create_video_configuration(main={"size": self.hires_size})
         self.camera.configure(self.video_config)
@@ -190,8 +189,8 @@ class Camera:
         self.email_allowed = True
         self.last_motion_detected_time = None  # Initialize to None
         self.is_recording = False  # Track if video recording is in progress
-        self.bird_id = []  # Change to a list to hold multiple detections
-        self.bird_score = []  # Change to a list to hold multiple detections
+        self.bird_id = []
+        self.bird_score = []
         self.last_capture_time = time.time()
         self.periodic_image_capture_delay = 20
         self.drive_image_id = None
