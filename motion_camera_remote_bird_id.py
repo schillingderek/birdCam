@@ -250,8 +250,8 @@ class Camera:
         count = np.sum(np.array(diff) > 0)
         pir_motion_sensor = GPIO.input(PIR_PIN)
         image_motion_sensor = count > 500
-        if self.is_recording:
-            self.periodically_capture_and_process_frame()
+        # if self.is_recording:
+        #     self.periodically_capture_and_process_frame()
         if image_motion_sensor and pir_motion_sensor:  # Sensitivity threshold for motion AND PIR motion sensor input
             if self.email_allowed:
                 # Motion is detected and email is allowed
