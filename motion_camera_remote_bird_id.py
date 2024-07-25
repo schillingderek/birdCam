@@ -125,6 +125,8 @@ def upload_video(file_path, output_path):
         convert_h264_to_mp4(file_path, output_path)
         print(f"Conversion successful for {output_path}")
 
+        print("sleeping 30")
+        time.sleep(30)
         print("Uploading file...")
         f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(output_path))})
         f.SetContentFile(str(output_path))
