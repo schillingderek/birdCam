@@ -205,7 +205,7 @@ class Camera:
         timestamp = datetime.now()
         print(timestamp)
         self.still_config = self.camera.create_still_configuration()
-        self.file_output = f"/home/CM4Cam/camserver/static/pictures/snap_{timestamp}.jpg"
+        self.file_output = f"/root/birdcam/static/images/snap_{timestamp}.jpg"
         self.job = self.camera.switch_mode_and_capture_file(self.still_config, self.file_output, wait=False)
         self.metadata = self.camera.wait(self.job)
 class StreamingOutput(io.BufferedIOBase):
@@ -255,7 +255,7 @@ def startRec():
     global current_video_file
     print("Video Record")
     basename = show_time()
-    parent_dir = "/home/CM4Cam/camserver/static/video/"
+    parent_dir = "/root/birdcam/static/videos/"
     current_video_file = f"vid_{basename}.h264"  # Save the full path to a global variable
     output.fileoutput = os.path.join(parent_dir, current_video_file)
     output.start()
@@ -269,7 +269,7 @@ def stopRec():
     print("Video Stop")
     output.stop()
     if current_video_file:
-        source_path = os.path.join('/home/CM4Cam/camserver/static/video/', current_video_file)
+        source_path = os.path.join('/root/birdcam/static/videos/', current_video_file)
         output_path = source_path.replace('.h264', '.mp4')
         convert_h264_to_mp4(source_path, output_path)
         return render_template('stopRec.html', message=f"Conversion successful for {output_path}")
@@ -317,8 +317,8 @@ def snap():
 
 @app.route('/api/files')
 def api_files():
-    image_directory = '/home/CM4Cam/camserver/static/pictures/'
-    video_directory = '/home/CM4Cam/camserver/static/video/'
+    image_directory = '/root/birdcam/static/images/'
+    video_directory = '/root/birdcam/static/videos/'
     try:
         images = [img for img in os.listdir(image_directory) if img.endswith(('.jpg', '.jpeg', '.png'))]
         videos = [file for file in os.listdir(video_directory) if file.endswith('.mp4')]
@@ -334,9 +334,9 @@ def api_files():
 def delete_file(filename):
     # Determine if it's a video or picture based on the extension or another method
     if filename.endswith('.mp4') or filename.endswith('.mkv'):
-        directory = '/home/CM4Cam/camserver/static/video'
+        directory = '/root/birdcam/static/videos'
     else:
-        directory = '/home/CM4Cam/camserver/static/pictures'
+        directory = '/root/birdcam/static/images'
     file_path = os.path.join(directory, filename)
     try:
         os.remove(file_path)
@@ -347,8 +347,8 @@ def delete_file(filename):
 
 @app.route('/files')
 def files():
-    image_directory = '/home/CM4Cam/camserver/static/pictures/'
-    video_directory = '/home/CM4Cam/camserver/static/video/'
+    image_directory = '/root/birdcam/static/images/'
+    video_directory = '/root/birdcam/static/videos/'
     try:
         images = os.listdir(image_directory)
         videos = [file for file in os.listdir(video_directory) if file.endswith(('.mp4'))]  # Assuming video formats
