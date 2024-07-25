@@ -116,12 +116,12 @@ def convert_h264_to_mp4(source_file_path, output_file_path):
             output_file_path
         ]     
         subprocess.run(command, check=True)
-        print(f"Conversion successful: {output_file_path}")
     except subprocess.CalledProcessError as e:
         print(f"Error during conversion: {e}")
 
 def upload_video(file_path, output_path):
     try:
+        print("Starting conversion")
         convert_h264_to_mp4(file_path, output_path)
         print(f"Conversion successful for {output_path}")
 
@@ -256,8 +256,8 @@ class Camera:
         count = np.sum(np.array(diff) > 0)
         pir_motion_sensor = GPIO.input(PIR_PIN)
         image_motion_sensor = count > 500
-        if self.is_recording:
-            self.periodically_capture_and_process_frame()
+        # if self.is_recording:
+        #     self.periodically_capture_and_process_frame()
         if image_motion_sensor and pir_motion_sensor:  # Sensitivity threshold for motion AND PIR motion sensor input
             if self.email_allowed:
                 # Motion is detected and email is allowed
