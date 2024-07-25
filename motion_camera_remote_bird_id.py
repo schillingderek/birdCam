@@ -69,6 +69,9 @@ email_lock = threading.Lock()
 # Global Last Motion Time
 last_motion_time = None
 
+# Global frame info
+frame_data = None
+
 # Global Email Routes
 sender_email = "schilling.derek@gmail.com"
 app_password = os.getenv('GOOGLE_APP_PASSWORD')
@@ -235,8 +238,8 @@ class Camera:
         self.camera.start()
         with self.streamOut.condition:
             self.streamOut.condition.wait()
-            frame_data = self.streamOut.frame
-        return frame_data
+            frame = self.streamOut.frame
+        return frame
 
 
 ##############################################################################################################################################################
@@ -244,6 +247,7 @@ class Camera:
                                                                         # Motion Detection Handler
 
     def motion_detection_loop(self):
+        global frame_data
         while True:
             frame_data = self.get_frame()
             image = Image.open(io.BytesIO(frame_data)).convert('L')  # Convert to grayscale
@@ -349,8 +353,9 @@ class StreamingOutput(io.BufferedIOBase):
 camera = Camera()
 
 def genFrames():
+    global frame_data
     while True:
-        frame = camera.get_frame()
+        frame = frame_data
         yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
