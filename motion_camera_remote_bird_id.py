@@ -308,7 +308,7 @@ class Camera:
             if current_video_file:
                 source_path = os.path.join(video_dir, current_video_file)
                 output_path = source_path.replace('.h264', '.mp4')
-                start_video_upload(source_path, output_path)
+                # start_video_upload(source_path, output_path)
             self.is_recording = False
 
 ##############################################################################################################################################################
