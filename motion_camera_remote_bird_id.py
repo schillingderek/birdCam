@@ -33,6 +33,9 @@ import numpy as np
 import threading
 from dotenv import load_dotenv
 
+import logging
+import sys
+
 from PIL import Image, ImageChops, ImageFilter
 
 load_dotenv()
@@ -88,6 +91,8 @@ base_dir = "/root/birdcam"
 video_dir = base_dir + "/static/videos/"
 images_dir = base_dir + "/static/images"
 
+logging.basicConfig(level=logging.INFO, stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s')
+
 ROTATION = 270
 WIDTH = 640
 HEIGHT = 480
@@ -110,23 +115,23 @@ def convert_h264_to_mp4(source_file_path, output_file_path):
         # Command to convert h264 to mp4
         command = ['ffmpeg', '-i', source_file_path, '-c', 'copy', output_file_path]
         subprocess.run(command, check=True)
-        print(f"Conversion successful: {output_file_path}")
+        logging.info(f"Conversion successful: {output_file_path}")
     except subprocess.CalledProcessError as e:
-        print(f"Error during conversion: {e}")
+        logging.info(f"Error during conversion: {e}")
 
 def upload_video(file_path, output_path):
     try:
         convert_h264_to_mp4(file_path, output_path)
-        print(f"Conversion successful for {output_path}")
+        logging.info(f"Conversion successful for {output_path}")
 
-        print("Uploading file...")
+        logging.info("Uploading file...")
         f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(output_path))})
         f.SetContentFile(str(output_path))
         f.Upload()
         f = None
-        print("Upload Completed.")
+        logging.info("Upload Completed.")
     except Exception as e:
-        print(f"Failed to upload video: {e}")
+        logging.info(f"Failed to upload video: {e}")
 
 def start_video_upload(file_path, output_path):
     upload_thread = threading.Thread(target=upload_video, args=(file_path, output_path))
@@ -152,9 +157,9 @@ def send_email(subject, body, sender, receiver, password):
             with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
                 server.login(sender, password)
                 server.send_message(msg)
-            print("Email sent successfully!")
+            logging.info("Email sent successfully!")
         except Exception as e:
-            print(f"Failed to send email: {e}")
+            logging.info(f"Failed to send email: {e}")
     thread = threading.Thread(target=email_thread)
     thread.start()
 
@@ -195,23 +200,23 @@ class Camera:
         self.motion_detection_thread.start()
 
     def perform_obj_detection_and_inference(self):
-            print("Processing frame at: ", self.file_output)
+            logging.info("Processing frame at: ", self.file_output)
             try:
                 # Send the captured image to the Flask app running on your MacBook
                 url = "https://feed-the-birds-88.loca.lt/process_image"
                 data = {'file_id': self.drive_image_id}
                 response = requests.post(url, json=data)
-                print("Frame processed")
+                logging.info("Frame processed")
                 
                 if response.status_code == 200:
                     bird_results = response.json()
                     self.bird_id, self.bird_score = zip(*bird_results) if bird_results else ([], [])
-                    print(bird_results)
+                    logging.info(bird_results)
                 else:
-                    print(f"Error in response from server: {response.status_code}")
+                    logging.info(f"Error in response from server: {response.status_code}")
                 
             except Exception as e:
-                print(f"Error sending image to server: {e}")
+                logging.info(f"Error sending image to server: {e}")
 
     def periodically_capture_and_process_frame(self):
         current_time = time.time()
@@ -257,21 +262,21 @@ class Camera:
                 # Motion is detected and email is allowed
                 if last_motion_time is None or (current_time - last_motion_time > 30):
                     send_email("Motion Detected", "Motion has been detected by your camera.", sender_email, receiver_email, app_password)
-                    print("Motion detected and email sent.")
+                    logging.info("Motion detected and email sent.")
                     last_motion_time = current_time  # Update the last motion time
                     self.email_allowed = False  # Prevent further emails until condition resets
                     self.start_recording()  # Start recording when motion is detected
                 # else:
-                #     print("Motion detected but not eligible for email due to cooldown.")
+                #     logging.info("Motion detected but not eligible for email due to cooldown.")
             # else:
-            #     print("Motion detected but email not sent due to recent activity.")
+            #     logging.info("Motion detected but email not sent due to recent activity.")
             self.last_motion_detected_time = current_time
         else:
             # No motion detected
             if self.last_motion_detected_time and (current_time - self.last_motion_detected_time > 30) and not self.email_allowed:
                 self.email_allowed = True  # Re-enable sending emails after 30 seconds of no motion
-                print("30 seconds of no motion passed, emails re-enabled.")
-                self.last_motion_detected_time = current_time  # Reset to prevent message re-printing
+                logging.info("30 seconds of no motion passed, emails re-enabled.")
+                self.last_motion_detected_time = current_time  # Reset to prevent message re-logging.infoing
                 self.stop_recording()  # Stop recording when no motion is detected for 30 seconds
 
 ##############################################################################################################################################################
@@ -281,7 +286,7 @@ class Camera:
     def start_recording(self):
         global current_video_file
         if not self.is_recording:
-            print("Starting video recording")
+            logging.info("Starting video recording")
             basename = show_time()
             parent_dir = video_dir
             current_video_file = f"vid_{basename}.h264"
@@ -292,7 +297,7 @@ class Camera:
     def stop_recording(self):
         global current_video_file
         if self.is_recording:
-            print("Stopping video recording")
+            logging.info("Stopping video recording")
             output.stop()
             if current_video_file:
                 source_path = os.path.join(video_dir, current_video_file)
@@ -306,7 +311,7 @@ class Camera:
 
 
     def capture_frame(self):
-        print("Capturing frame from video stream")
+        logging.info("Capturing frame from video stream")
         frame = self.streamOut.frame
         image = Image.open(io.BytesIO(frame))
         rotated_image = image.rotate(90, expand=True)
@@ -317,14 +322,14 @@ class Camera:
         self.perform_obj_detection_and_inference()
 
     def uploadFile(self):
-        print("Uploading file...")
+        logging.info("Uploading file...")
         f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(self.file_output))})
         f.SetContentFile(str(self.file_output))
         f.Upload()
         self.drive_image_id = f['id']
-        print(self.drive_image_id)
+        logging.info(self.drive_image_id)
         f = None
-        print("Upload Completed.")
+        logging.info("Upload Completed.")
 
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
@@ -392,7 +397,7 @@ def bird_info():
 # @app.route('/snap.html')
 # def snap():
 #     """Snap Pane"""
-#     print("Taking a photo")
+#     logging.info("Taking a photo")
 #     camera.capture_frame()
 #     camera.perform_obj_detection_and_inference()
 #     return render_template('snap.html')
@@ -403,11 +408,11 @@ def api_files():
     try:
         images = [img for img in os.listdir(images_dir) if img.endswith(('.jpg', '.jpeg', '.png'))]
         videos = [file for file in os.listdir(video_dir) if file.endswith('.mp4')]
-        # print("Images found:", images)  # Debug print
-        # print("Videos found:", videos)  # Debug print
+        # logging.info("Images found:", images)  # Debug logging.info
+        # logging.info("Videos found:", videos)  # Debug logging.info
         return jsonify({'images': images, 'videos': videos})
     except Exception as e:
-        print("Error in api_files:", str(e))  # Debug print
+        logging.info("Error in api_files:", str(e))  # Debug logging.info
         return jsonify({'error': str(e)})
 
 @app.route('/delete-file/<filename>', methods=['DELETE'])
