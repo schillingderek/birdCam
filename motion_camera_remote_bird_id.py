@@ -42,7 +42,7 @@ app.secret_key = os.getenv('APP_SECRET_KEY')
 api = Api(app)
 
 encoder = H264Encoder()
-output = FileOutput()
+output = CircularOutput()
 
 import subprocess
 import smtplib
