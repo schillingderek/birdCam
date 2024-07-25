@@ -63,8 +63,8 @@ current_video_file = None
 # Global set time for email time cooldown.
 last_email_sent_time = 0
 
-# Global Thread Lock
-email_lock = threading.Lock()
+# # Global Thread Lock
+# email_lock = threading.Lock()
 
 # Global Last Motion Time
 last_motion_time = None
@@ -77,7 +77,7 @@ sender_email = "schilling.derek@gmail.com"
 app_password = os.getenv('GOOGLE_APP_PASSWORD')
 receiver_email = "schilling.derek@gmail.com"
 
-# Global Login Credentials CHANGE THEM
+# Global Login Credentials
 users = {os.getenv('APP_LOGIN_USERNAME'): os.getenv('APP_LOGIN_PASSWORD')}
 
 gauth = GoogleAuth()
@@ -97,8 +97,8 @@ images_dir = base_dir + "/static/images"
 logging.basicConfig(level=logging.INFO, stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s')
 
 ROTATION = 270
-WIDTH = 640
-HEIGHT = 480
+WIDTH = 800
+HEIGHT = 400
 rotation_header = bytes()
 if ROTATION:
     WIDTH, HEIGHT = HEIGHT, WIDTH
@@ -181,7 +181,6 @@ def send_email(subject, body, sender, receiver, password):
 class Camera:
     def __init__(self):
         self.camera = picamera2.Picamera2()
-        # self.lores_size = (640, 360)
         self.hires_size = (WIDTH,HEIGHT)
         self.video_config = self.camera.create_video_configuration(main={"size": self.hires_size})
         self.camera.configure(self.video_config)
@@ -257,7 +256,7 @@ class Camera:
             self.previous_image = image
     
     def detect_motion(self, prev_image, current_image):
-        global last_motion_time, current_video_file
+        global last_motion_time
         current_time = time.time()
         diff = ImageChops.difference(prev_image, current_image)
         diff = diff.point(lambda x: x > 40 and 255)    #Adjust 40 to change sensitivity. Higher is less sensitive
@@ -274,7 +273,7 @@ class Camera:
                     logging.info("Motion detected and email sent.")
                     last_motion_time = current_time  # Update the last motion time
                     self.email_allowed = False  # Prevent further emails until condition resets
-                    self.start_recording()  # Start recording when motion is detected
+                    # self.start_recording()  # Start recording when motion is detected
                 # else:
                 #     logging.info("Motion detected but not eligible for email due to cooldown.")
             # else:
@@ -286,7 +285,7 @@ class Camera:
                 self.email_allowed = True  # Re-enable sending emails after 30 seconds of no motion
                 logging.info("30 seconds of no motion passed, emails re-enabled.")
                 self.last_motion_detected_time = current_time  # Reset to prevent message re-logging.infoing
-                self.stop_recording()  # Stop recording when no motion is detected for 30 seconds
+                # self.stop_recording()  # Stop recording when no motion is detected for 30 seconds
 
 ##############################################################################################################################################################
 
@@ -320,8 +319,9 @@ class Camera:
 
 
     def capture_frame(self):
+        global frame_data
         logging.info("Capturing frame from video stream")
-        frame = self.streamOut.frame
+        frame = frame_data
         image = Image.open(io.BytesIO(frame))
         rotated_image = image.rotate(90, expand=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -418,8 +418,6 @@ def api_files():
     try:
         images = [img for img in os.listdir(images_dir) if img.endswith(('.jpg', '.jpeg', '.png'))]
         videos = [file for file in os.listdir(video_dir) if file.endswith('.mp4')]
-        # logging.info("Images found:", images)  # Debug logging.info
-        # logging.info("Videos found:", videos)  # Debug logging.info
         return jsonify({'images': images, 'videos': videos})
     except Exception as e:
         logging.info("Error in api_files:", str(e))  # Debug logging.info
