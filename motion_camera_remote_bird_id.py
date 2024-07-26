@@ -20,6 +20,7 @@ from pydrive.auth import GoogleAuth
 import requests
 
 import piexif
+import ffmpeg
 
 import subprocess
 from flask import Flask, render_template, Response, jsonify, request, session, redirect, url_for
@@ -113,20 +114,18 @@ if ROTATION:
 
 ##############################################################################################################################################################
 
-def convert_h264_to_mp4(source_file_path, output_file_path):
+def convert_video(source_file_path, output_file_path):
     try:
-        # Command to convert h264 to mp4
-        command = [
-            'ffmpeg', 
-            '-i', source_file_path, 
-            '-c', 'copy',  # Copy the video stream without re-encoding
-            '-metadata:s:v:0', f'rotate={270}',  # Add rotation metadata
-            output_file_path
-        ]
-        subprocess.run(command, check=True)
+        ffmpeg.input(source_file_path).output(
+            output_file_path,
+            **{
+                'c': 'copy',  # Copy the video stream without re-encoding
+                'metadata:s:v:0': 'rotate=270'  # Add rotation metadata
+            }
+        ).run()
         logging.info(f"Conversion successful: {output_file_path}")
-    except subprocess.CalledProcessError as e:
-        logging.info(f"Error during conversion: {e}")
+    except ffmpeg.Error as e:
+        logging.error(f"Error occurred: {e.stderr.decode()}")
 
 def upload_video(file_path, output_path):
     try:
