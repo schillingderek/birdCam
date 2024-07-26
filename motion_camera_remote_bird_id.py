@@ -216,7 +216,7 @@ class Camera:
             logging.info("Processing frame at: ", self.file_output)
             try:
                 # Send the captured image to the Flask app running on your MacBook
-                url = "https://feed-the-birds-88.loca.lt/process_image"
+                url = "https://inferenceserver-ef6censsqa-uc.a.run.app/process_image"
                 data = {'file_id': self.drive_image_id}
                 response = requests.post(url, json=data)
                 logging.info("Frame processed")
@@ -268,8 +268,8 @@ class Camera:
         count = np.sum(np.array(diff) > 0)
         pir_motion_sensor = GPIO.input(PIR_PIN)
         image_motion_sensor = count > 500
-        # if self.is_recording:
-        #     self.periodically_capture_and_process_frame()
+        if self.is_recording:
+            self.periodically_capture_and_process_frame()
         if image_motion_sensor and pir_motion_sensor:  # Sensitivity threshold for motion AND PIR motion sensor input
             if self.email_allowed:
                 # Motion is detected and email is allowed

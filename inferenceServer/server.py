@@ -5,6 +5,8 @@ import numpy as np
 import torch
 from torchvision import transforms
 from ultralytics import YOLO
+from flask_cors import CORS
+from dotenv import load_dotenv
 
 from pydrive.drive import GoogleDrive
 from pydrive.auth import GoogleAuth
@@ -14,11 +16,12 @@ import requests
 from requests_toolbelt.multipart import decoder
 from werkzeug.utils import secure_filename
 
-gauth = GoogleAuth()
-gauth.LocalWebserverAuth()
-drive = GoogleDrive(gauth)
+load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
+
+all.config['DEBUG'] = os.environ.get('FLASK_DEBUG')
 
 # Load class names from the .npy file
 class_names = np.load("class_names.npy", allow_pickle=True).tolist()
@@ -89,6 +92,12 @@ def process_image():
     print("Image ID: ", image_id)
 
     image_path = os.path.join("/app", "downloaded_image.jpg")
+
+    # Initialize Google Drive client inside the route
+    gauth = GoogleAuth()
+    gauth.LocalWebserverAuth()
+    drive = GoogleDrive(gauth)
+
     driveImage = drive.CreateFile({'id': image_id})
     driveImage.GetContentFile(image_path)
 
@@ -110,4 +119,4 @@ def process_image():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000)
+    app.run(host='0.0.0.0', port=8080)

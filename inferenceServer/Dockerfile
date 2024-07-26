@@ -1,6 +1,12 @@
 FROM python:3.10-slim
 
-WORKDIR /app
+ENV PYTHONUNBUFFERED True
+
+ENV APP_HOME /app
+
+WORKDIR $APP_HOME
+
+COPY . ./
 
 # Install dependencies for OpenCV
 RUN apt-get update && apt-get install -y \
@@ -10,17 +16,10 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements file
-COPY requirements.txt .
-
 # Install Python dependencies
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application code
-COPY . .
-
-# Expose the port the app runs on
-EXPOSE 8000
 
 # Run the application
-CMD ["python", "server.py"]
+CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 app:app
