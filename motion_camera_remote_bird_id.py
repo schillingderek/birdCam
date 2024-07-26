@@ -116,13 +116,19 @@ if ROTATION:
 
 def convert_h264_to_mp4(source_file_path, output_file_path):
     try:
-        ffmpeg.input(source_file_path).output(
-            output_file_path,
-            **{
-                'c': 'copy',  # Copy the video stream without re-encoding
-                'metadata:s:v:0': 'rotate=270'  # Add rotation metadata
-            }
-        ).run()
+        ffmpeg_path = '/usr/bin/ffmpeg'  # Adjust to the actual path of your ffmpeg executable
+        (
+            ffmpeg
+            .input(source_file_path)
+            .output(
+                output_file_path,
+                **{
+                    'c': 'copy',  # Copy the video stream without re-encoding
+                    'metadata:s:v:0': 'rotate=270'  # Add rotation metadata
+                }
+            )
+            .run(cmd=ffmpeg_path)
+        )
         logging.info(f"Conversion successful: {output_file_path}")
     except ffmpeg.Error as e:
         logging.error(f"Error occurred: {e.stderr.decode()}")
