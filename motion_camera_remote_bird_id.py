@@ -97,8 +97,8 @@ images_dir = base_dir + "/static/images"
 logging.basicConfig(level=logging.INFO, stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s')
 
 ROTATION = 270
-WIDTH = 800
-HEIGHT = 400
+WIDTH = 640
+HEIGHT = 480
 rotation_header = bytes()
 if ROTATION:
     WIDTH, HEIGHT = HEIGHT, WIDTH
@@ -181,6 +181,7 @@ def send_email(subject, body, sender, receiver, password):
 class Camera:
     def __init__(self):
         self.camera = picamera2.Picamera2()
+        # self.lores_size = (640, 360)
         self.hires_size = (WIDTH,HEIGHT)
         self.video_config = self.camera.create_video_configuration(main={"size": self.hires_size})
         self.camera.configure(self.video_config)
@@ -237,21 +238,26 @@ class Camera:
         self.camera.start()
         with self.streamOut.condition:
             self.streamOut.condition.wait()
-            frame_data = self.streamOut.frame
-        image = Image.open(io.BytesIO(frame_data)).convert('L')  # Convert to grayscale
-        image = image.filter(ImageFilter.GaussianBlur(radius=2))  # Apply Gaussian blur
-        if self.previous_image is not None:
-            self.detect_motion(self.previous_image, image)
-        self.previous_image = image
-        return frame_data
+            frame = self.streamOut.frame
+        return frame
 
 
 ##############################################################################################################################################################
 
                                                                         # Motion Detection Handler
+
+    def motion_detection_loop(self):
+        global frame_data
+        while True:
+            frame_data = self.get_frame()
+            image = Image.open(io.BytesIO(frame_data)).convert('L')  # Convert to grayscale
+            image = image.filter(ImageFilter.GaussianBlur(radius=2))  # Apply Gaussian blur
+            if self.previous_image is not None:
+                self.detect_motion(self.previous_image, image)
+            self.previous_image = image
     
     def detect_motion(self, prev_image, current_image):
-        global last_motion_time
+        global last_motion_time, current_video_file
         current_time = time.time()
         diff = ImageChops.difference(prev_image, current_image)
         diff = diff.point(lambda x: x > 40 and 255)    #Adjust 40 to change sensitivity. Higher is less sensitive
@@ -268,7 +274,7 @@ class Camera:
                     logging.info("Motion detected and email sent.")
                     last_motion_time = current_time  # Update the last motion time
                     self.email_allowed = False  # Prevent further emails until condition resets
-                    # self.start_recording()  # Start recording when motion is detected
+                    self.start_recording()  # Start recording when motion is detected
                 # else:
                 #     logging.info("Motion detected but not eligible for email due to cooldown.")
             # else:
@@ -280,7 +286,7 @@ class Camera:
                 self.email_allowed = True  # Re-enable sending emails after 30 seconds of no motion
                 logging.info("30 seconds of no motion passed, emails re-enabled.")
                 self.last_motion_detected_time = current_time  # Reset to prevent message re-logging.infoing
-                # self.stop_recording()  # Stop recording when no motion is detected for 30 seconds
+                self.stop_recording()  # Stop recording when no motion is detected for 30 seconds
 
 ##############################################################################################################################################################
 
@@ -314,9 +320,8 @@ class Camera:
 
 
     def capture_frame(self):
-        global frame_data
         logging.info("Capturing frame from video stream")
-        frame = frame_data
+        frame = self.streamOut.frame
         image = Image.open(io.BytesIO(frame))
         rotated_image = image.rotate(90, expand=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -348,8 +353,9 @@ class StreamingOutput(io.BufferedIOBase):
 camera = Camera()
 
 def genFrames():
+    global frame_data
     while True:
-        frame = camera.get_frame()
+        frame = frame_data
         yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
@@ -412,6 +418,8 @@ def api_files():
     try:
         images = [img for img in os.listdir(images_dir) if img.endswith(('.jpg', '.jpeg', '.png'))]
         videos = [file for file in os.listdir(video_dir) if file.endswith('.mp4')]
+        # logging.info("Images found:", images)  # Debug logging.info
+        # logging.info("Videos found:", videos)  # Debug logging.info
         return jsonify({'images': images, 'videos': videos})
     except Exception as e:
         logging.info("Error in api_files:", str(e))  # Debug logging.info
