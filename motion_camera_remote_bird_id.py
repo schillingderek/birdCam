@@ -114,7 +114,7 @@ if ROTATION:
 
 ##############################################################################################################################################################
 
-def convert_video(source_file_path, output_file_path):
+def convert_h264_to_mp4(source_file_path, output_file_path):
     try:
         ffmpeg.input(source_file_path).output(
             output_file_path,
@@ -132,12 +132,12 @@ def upload_video(file_path, output_path):
         convert_h264_to_mp4(file_path, output_path)
         logging.info(f"Conversion successful for {output_path}")
 
-        # logging.info("Uploading file...")
-        # f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(output_path))})
-        # f.SetContentFile(str(output_path))
-        # f.Upload()
-        # f = None
-        # logging.info("Upload Completed.")
+        logging.info("Uploading file...")
+        f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(output_path))})
+        f.SetContentFile(str(output_path))
+        f.Upload()
+        f = None
+        logging.info("Upload Completed.")
     except Exception as e:
         logging.info(f"Failed to upload video: {e}")
 
@@ -180,7 +180,6 @@ def send_email(subject, body, sender, receiver, password):
 class Camera:
     def __init__(self):
         self.camera = picamera2.Picamera2()
-        # self.lores_size = (640, 360)
         self.hires_size = (WIDTH,HEIGHT)
         self.video_config = self.camera.create_video_configuration(main={"size": self.hires_size})
         self.camera.configure(self.video_config)
