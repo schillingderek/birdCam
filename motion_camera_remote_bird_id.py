@@ -97,8 +97,8 @@ images_dir = base_dir + "/static/images"
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s')
 
-WIDTH = 640
-HEIGHT = 480
+WIDTH = 1000
+HEIGHT = 600
 
 ##############################################################################################################################################################
 
@@ -181,7 +181,7 @@ class Camera:
         self.video_config = self.camera.create_video_configuration(main={"size": self.hires_size})
         self.camera.configure(self.video_config)
         self.encoder = MJPEGEncoder()
-        self.encoder.bitrate = 10000000
+        self.encoder.bitrate = 2500000
         self.streamOut = StreamingOutput()
         self.streamOut2 = FileOutput(self.streamOut)
         self.encoder.output = [self.streamOut2]
