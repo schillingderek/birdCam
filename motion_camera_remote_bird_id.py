@@ -180,7 +180,7 @@ class Camera:
         self.hires_size = (WIDTH,HEIGHT)
         self.video_config = self.camera.create_video_configuration(main={"size": self.hires_size})
         self.camera.configure(self.video_config)
-        self.encoder = MJPEGEncoder()
+        self.encoder = H264Encoder()
         self.encoder.bitrate = 10000000
         self.streamOut = StreamingOutput()
         self.streamOut2 = FileOutput(self.streamOut)
@@ -351,7 +351,7 @@ def genFrames():
     while True:
         frame = frame_data
         yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+                   b'Content-Type: image/mp4\r\n\r\n' + frame + b'\r\n\r\n')
 
 
 ##############################################################################################################################################################
@@ -364,7 +364,7 @@ class VideoFeed(Resource):
     def get(self):
         if 'username' not in session:
             return redirect(url_for('login'))  # Ensure this follows your app's login logic
-        return Response(genFrames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+        return Response(genFrames(), mimetype='video/mp4')
 
 ##############################################################################################################################################################
 
