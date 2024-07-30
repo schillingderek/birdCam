@@ -97,7 +97,7 @@ images_dir = base_dir + "/static/images"
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s')
 
-WIDTH = 1000
+WIDTH = 800
 HEIGHT = 600
 
 ##############################################################################################################################################################
