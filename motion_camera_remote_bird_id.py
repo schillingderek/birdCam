@@ -181,7 +181,7 @@ class Camera:
         self.video_config = self.camera.create_video_configuration(main={"size": self.hires_size})
         self.camera.configure(self.video_config)
         self.encoder = MJPEGEncoder()
-        self.encoder.bitrate = 2500000
+        self.encoder.bitrate = 10000000
         self.streamOut = StreamingOutput()
         self.streamOut2 = FileOutput(self.streamOut)
         self.encoder.output = [self.streamOut2]
@@ -200,8 +200,8 @@ class Camera:
         self.drive_image_id = None
 
         # Start motion detection thread
-        self.motion_detection_thread = threading.Thread(target=self.motion_detection_loop)
-        self.motion_detection_thread.start()
+        self.gen_frames_thread = threading.Thread(target=self.gen_frames_loop)
+        self.gen_frames_thread.start()
 
     def perform_obj_detection_and_inference(self):
             # logging.info("Processing frame at: ", self.file_output)
@@ -241,15 +241,21 @@ class Camera:
 
                                                                         # Motion Detection Handler
 
-    def motion_detection_loop(self):
+    def gen_frames_loop(self):
         global frame_data
         while True:
             frame_data = self.get_frame()
-            image = Image.open(io.BytesIO(frame_data)).convert('L')  # Convert to grayscale
-            image = image.filter(ImageFilter.GaussianBlur(radius=2))  # Apply Gaussian blur
-            if self.previous_image is not None:
-                self.detect_motion(self.previous_image, image)
-            self.previous_image = image
+            motion_thread = threading.Thread(target=self.process_image_and_detect_motion)
+            motion_thread.start() 
+
+    def process_image_and_detect_motion(self):
+        global frame_data
+
+        image = Image.open(io.BytesIO(frame_data)).convert('L')  # Convert to grayscale
+        image = image.filter(ImageFilter.GaussianBlur(radius=2))  # Apply Gaussian blur
+        if self.previous_image is not None:
+            self.detect_motion(self.previous_image, image)
+        self.previous_image = image
     
     def detect_motion(self, prev_image, current_image):
         global last_motion_time, current_video_file
