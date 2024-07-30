@@ -245,11 +245,11 @@ class Camera:
         global frame_data
         while True:
             frame_data = self.get_frame()
-            # image = Image.open(io.BytesIO(frame_data)).convert('L')  # Convert to grayscale
-            # image = image.filter(ImageFilter.GaussianBlur(radius=2))  # Apply Gaussian blur
-            # if self.previous_image is not None:
-            #     self.detect_motion(self.previous_image, image)
-            # self.previous_image = image
+            image = Image.open(io.BytesIO(frame_data)).convert('L')  # Convert to grayscale
+            image = image.filter(ImageFilter.GaussianBlur(radius=2))  # Apply Gaussian blur
+            if self.previous_image is not None:
+                self.detect_motion(self.previous_image, image)
+            self.previous_image = image
     
     def detect_motion(self, prev_image, current_image):
         global last_motion_time, current_video_file
