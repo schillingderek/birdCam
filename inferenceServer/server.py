@@ -21,7 +21,7 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-all.config['DEBUG'] = os.environ.get('FLASK_DEBUG')
+app.config['DEBUG'] = os.environ.get('FLASK_DEBUG')
 
 # Load class names from the .npy file
 class_names = np.load("class_names.npy", allow_pickle=True).tolist()

@@ -213,7 +213,7 @@ class Camera:
         self.motion_detection_thread.start()
 
     def perform_obj_detection_and_inference(self):
-            logging.info("Processing frame at: ", self.file_output)
+            # logging.info("Processing frame at: ", self.file_output)
             try:
                 # Send the captured image to the Flask app running on your MacBook
                 url = "https://inferenceserver-ef6censsqa-uc.a.run.app/process_image"
