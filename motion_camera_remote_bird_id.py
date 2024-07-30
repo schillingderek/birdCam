@@ -97,16 +97,8 @@ images_dir = base_dir + "/static/images"
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s')
 
-ROTATION = 270
 WIDTH = 640
 HEIGHT = 480
-rotation_header = bytes()
-if ROTATION:
-    WIDTH, HEIGHT = HEIGHT, WIDTH
-    code = 6 if ROTATION == 90 else 8
-    exif_bytes = piexif.dump({'0th': {piexif.ImageIFD.Orientation: code}})
-    exif_len = len(exif_bytes) + 2
-    rotation_header = bytes.fromhex('ffe1') + exif_len.to_bytes(2, 'big') + exif_bytes
 
 ##############################################################################################################################################################
 
@@ -123,8 +115,7 @@ def convert_h264_to_mp4(source_file_path, output_file_path):
             .output(
                 output_file_path,
                 **{
-                    'c': 'copy',  # Copy the video stream without re-encoding
-                    'metadata:s:v:0': 'rotate=270'  # Add rotation metadata
+                    'c': 'copy'  # Copy the video stream without re-encoding
                 }
             )
             .run(cmd=ffmpeg_path)
@@ -327,10 +318,9 @@ class Camera:
         logging.info("Capturing frame from video stream")
         frame = self.streamOut.frame
         image = Image.open(io.BytesIO(frame))
-        rotated_image = image.rotate(90, expand=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.file_output = f"{images_dir}/snap_{timestamp}.jpg"
-        rotated_image.save(self.file_output)
+        image.save(self.file_output)
         self.uploadFile()
         self.perform_obj_detection_and_inference()
 
@@ -351,7 +341,7 @@ class StreamingOutput(io.BufferedIOBase):
 
     def write(self, buf):
         with self.condition:
-            self.frame = buf[:2] + rotation_header + buf[2:]
+            self.frame = buf
             self.condition.notify_all()
 
 camera = Camera()
