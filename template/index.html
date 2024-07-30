@@ -29,7 +29,7 @@
             margin-bottom: 10px;
             position: relative;
         }
-        .streaming-container video {
+        .streaming-container img {
             width: 100%;
             height: calc(100vh - 140px); /* Adjust to fit the screen excluding button and info container heights */
             border-radius: 4px;
@@ -110,10 +110,7 @@
             <!-- Streaming Container -->
             <div class="col-xs-12">
                 <div class="streaming-container">
-                    <video id="video" autoplay controls>
-                        <source src="{{'cam'}}" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
+                    <img src="{{'cam'}}" alt="Camera Stream">
                 </div>
             </div>
             <!-- Logout and Info Container -->
