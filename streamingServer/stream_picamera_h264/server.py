@@ -70,11 +70,6 @@ def stream():
     camera.camera.start()
     global startTime
 
-    if time.time() - startTime > 30:
-        save_image_thread = Thread(target=save_frame)
-        save_image_thread.start()
-
-
     try:
         WebSocketWSGIHandler.http_version = '1.1'
         websocketd = make_server('', 9000, server_class=WSGIServer,
@@ -98,6 +93,10 @@ def stream():
                     websocketd.manager.broadcast(frame_data, binary=True)
                 else:
                     print("No frame data received")
+
+                if time.time() - startTime > 30:
+                    save_image_thread = Thread(target=save_frame)
+                    save_image_thread.start()
         except KeyboardInterrupt:
             pass
         finally:
