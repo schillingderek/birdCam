@@ -15,6 +15,9 @@ from threading import Thread, Condition
 videoCaptureEncoder = H264Encoder()
 videoCaptureOutput = CircularOutput()
 
+width = 1280
+height = 720
+
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
         self.frame = None
@@ -29,21 +32,25 @@ class StreamingOutput(io.BufferedIOBase):
         with self.condition:
             self.condition.wait()
             return self.frame
+        
+class Camera:
+    def __init__(self):
+        self.camera = picamera2.Picamera2()
+        self.video_config = self.camera.create_video_configuration({'size': (width, height)})
+        self.camera.configure(self.video_config)
+        self.streamingEncoder = H264Encoder(bitrate=2500000, profile='baseline')
+        self.streamingEncoder.bitrate = 5000000
+        self.streamOut = StreamingOutput()
+        self.streamOut2 = FileOutput(self.streamOut)
+        self.streamingEncoder.output = [self.streamOut2]
 
+        self.camera.start_encoder(self.streamingEncoder)
+        self.camera.start_recording(videoCaptureEncoder, videoCaptureOutput)
 
+camera = Camera()
 
 def stream():
-    picam2 = Picamera2()
-    video_config = picam2.create_video_configuration({'size': (1280, 720)})
-    picam2.configure(video_config)
-    
-    encoder = H264Encoder(bitrate=2500000, profile='baseline')  # Set bitrate as needed
-    stream_output = StreamingOutput()
-    stream_output2 = FileOutput(stream_output)
-
-    encoder.output = [stream_output2]
-    picam2.start_encoder(encoder)
-    picam2.start()
+    camera.camera.start()
 
     try:
         WebSocketWSGIHandler.http_version = '1.1'
@@ -62,7 +69,7 @@ def stream():
 
             while True:
                 # Read from the StreamingOutput and broadcast via WebSocket
-                frame_data = stream_output.read()
+                frame_data = camera.streamOut.read()
                 if frame_data:
                     #print("Sending frame of size:", len(frame_data))
                     websocketd.manager.broadcast(frame_data, binary=True)
@@ -73,14 +80,14 @@ def stream():
         finally:
             websocketd.shutdown()
             httpd.shutdown()
-            picam2.stop()
-            picam2.stop_encoder()
+            camera.camera.stop()
+            camera.camera.stop_encoder()
             raise KeyboardInterrupt
     except KeyboardInterrupt:
         pass
     finally:
-        picam2.stop()
-        picam2.stop_encoder()
+        camera.camera.stop()
+        camera.camera.stop_encoder()
 
 if __name__ == "__main__":
     stream()

@@ -335,7 +335,7 @@ class Camera:
         logging.info("Upload Completed.")
 
 class StreamingOutput(io.BufferedIOBase):
-    def __init__(self):
+    def __init__(self): 
         self.frame = None
         self.condition = Condition()
 
