@@ -56,11 +56,13 @@ camera = Camera()
 def save_frame():
     global startTime
     print("saving an image")
-    frame_data = camera.stream_out.read()
-    image = Image.open(io.BytesIO(frame_data))
+    still_config = camera.camera.create_still_configuration()
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     file_output = f"/root/birdcam/streamingServer/stream_picamera_h264/images/snap_{timestamp}.jpg"
-    image.save(file_output)
+    job = camera.camera.switch_mode_and_capture_file(still_config, file_output, wait=False)
+    metadata = camera.camera.wait(job)
+
+
     print("image saved")
 
     startTime = time.time()
