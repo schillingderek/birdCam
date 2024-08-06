@@ -11,9 +11,14 @@ from ws4py.websocket import WebSocket
 from ws4py.server.wsgirefserver import WSGIServer, WebSocketWSGIHandler, WebSocketWSGIRequestHandler
 from ws4py.server.wsgiutils import WebSocketWSGIApplication
 from threading import Thread, Condition
+import time
+from PIL import Image
+from datetime import datetime
 
 videoCaptureEncoder = H264Encoder()
 videoCaptureOutput = CircularOutput()
+
+startTime = time.time()
 
 width = 900
 height = 540
@@ -38,18 +43,37 @@ class Camera:
         self.camera = picamera2.Picamera2()
         self.video_config = self.camera.create_video_configuration({'size': (width, height)})
         self.camera.configure(self.video_config)
-        self.streamingEncoder = H264Encoder(bitrate=2500000, profile='baseline')
-        self.streamOut = StreamingOutput()
-        self.streamOut2 = FileOutput(self.streamOut)
-        self.streamingEncoder.output = [self.streamOut2]
+        self.streaming_encoder = H264Encoder(bitrate=2500000, profile='baseline')
+        self.stream_out = StreamingOutput()
+        self.stream_out_2 = FileOutput(self.stream_out)
+        self.streaming_encoder.output = [self.stream_out_2]
 
-        self.camera.start_encoder(self.streamingEncoder)
+        self.camera.start_encoder(self.streaming_encoder)
         self.camera.start_recording(videoCaptureEncoder, videoCaptureOutput)
 
 camera = Camera()
 
+def save_frame():
+    global startTime
+    print("saving an image")
+    frame_data = camera.stream_out.read()
+    image = Image.open(io.BytesIO(frame_data))
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    file_output = f"/root/birdcam/streamingServer/stream_picamera_h264/images/snap_{timestamp}.jpg"
+    image.save(file_output)
+    print("image saved")
+
+    startTime = time.time()
+
+
 def stream():
     camera.camera.start()
+    global startTime
+
+    if time.time() - startTime > 30:
+        save_image_thread = Thread(target=save_frame)
+        save_image_thread.start()
+
 
     try:
         WebSocketWSGIHandler.http_version = '1.1'
@@ -68,7 +92,7 @@ def stream():
 
             while True:
                 # Read from the StreamingOutput and broadcast via WebSocket
-                frame_data = camera.streamOut.read()
+                frame_data = camera.stream_out.read()
                 if frame_data:
                     #print("Sending frame of size:", len(frame_data))
                     websocketd.manager.broadcast(frame_data, binary=True)
