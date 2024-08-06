@@ -15,8 +15,8 @@ from threading import Thread, Condition
 videoCaptureEncoder = H264Encoder()
 videoCaptureOutput = CircularOutput()
 
-width = 1280
-height = 720
+width = 900
+height = 540
 
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
@@ -39,7 +39,6 @@ class Camera:
         self.video_config = self.camera.create_video_configuration({'size': (width, height)})
         self.camera.configure(self.video_config)
         self.streamingEncoder = H264Encoder(bitrate=2500000, profile='baseline')
-        self.streamingEncoder.bitrate = 5000000
         self.streamOut = StreamingOutput()
         self.streamOut2 = FileOutput(self.streamOut)
         self.streamingEncoder.output = [self.streamOut2]
