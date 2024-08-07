@@ -41,9 +41,13 @@ class StreamingOutput(io.BufferedIOBase):
 class Camera:
     def __init__(self):
         self.camera = picamera2.Picamera2()
-        self.video_config = self.camera.create_video_configuration({'size': (width, height)})
+        self.video_config = self.camera.create_video_configuration({"size": (width, height)}, lores={"size": (640, 360)})
         self.camera.configure(self.video_config)
-        self.streaming_encoder = H264Encoder(bitrate=2500000, profile='baseline')
+        self.streaming_encoder = H264Encoder()
+        self.streaming_encoder.bitrate = 2500000
+        self.streaming_encoder.profile = 'baseline'
+        self.streaming_encoder.size = self.video_config['lores']['size']
+        self.streaming_encoder.format = self.video_config['lores']['format']
         self.stream_out = StreamingOutput()
         self.stream_out_2 = FileOutput(self.stream_out)
         self.streaming_encoder.output = [self.stream_out_2]
