@@ -20,8 +20,8 @@ videoCaptureOutput = CircularOutput()
 
 startTime = time.time()
 
-width = 900
-height = 540
+width = 640
+height = 360
 
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
@@ -48,14 +48,16 @@ class Camera:
         self.streaming_encoder.profile = 'baseline'
         self.streaming_encoder.size = self.video_config['lores']['size']
         self.streaming_encoder.format = self.video_config['lores']['format']
-        print(self.streaming_encoder.size)
-        print(self.streaming_encoder.format)
         self.stream_out = StreamingOutput()
         self.stream_out_2 = FileOutput(self.stream_out)
         self.streaming_encoder.output = [self.stream_out_2]
         self.camera.start_encoder(self.streaming_encoder)
+        # self.lores_stream = self.camera.stream_map['lores']
+        self.streaming_encoder.encode()
+        
+        self.camera.start_recording(videoCaptureEncoder, videoCaptureOutput)
+
         self.camera.start()
-        # self.camera.start_recording(videoCaptureEncoder, videoCaptureOutput)
 
 camera = Camera()
 
