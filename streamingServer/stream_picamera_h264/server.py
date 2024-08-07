@@ -53,25 +53,10 @@ class Camera:
 
 camera = Camera()
 
-def save_frame():
-    global startTime
-    print("saving an image")
-    still_config = camera.camera.create_still_configuration()
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    file_output = f"/root/birdcam/streamingServer/stream_picamera_h264/images/snap_{timestamp}.jpg"
-    job = camera.camera.switch_mode_and_capture_file(still_config, file_output, wait=False)
-    metadata = camera.camera.wait(job)
-
-
-    print("image saved")
-
-    startTime = time.time()
-
-
 def stream():
-    camera.camera.start()
     global startTime
-
+    camera.camera.start()
+    is_recording = False
     try:
         WebSocketWSGIHandler.http_version = '1.1'
         websocketd = make_server('', 9000, server_class=WSGIServer,
@@ -95,10 +80,19 @@ def stream():
                     websocketd.manager.broadcast(frame_data, binary=True)
                 else:
                     print("No frame data received")
+                if time.time() - startTime > 10 and not is_recording:
+                    print("starting to record")
+                    timestamp = timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    videoCaptureOutput.fileoutput = f"/root/birdcam/streamingServer/stream_picamera_h264/images/snap_{timestamp}.h264"
+                    videoCaptureOutput.start()
+                    is_recording = True
+                    startTime = time.time()
+                elif time.time() - startTime > 10 and is_recording:
+                    print("stopping recording")
+                    videoCaptureOutput.stop()
+                    is_recording = False
+                    startTime = time.time()
 
-                if time.time() - startTime > 30:
-                    save_image_thread = Thread(target=save_frame)
-                    save_image_thread.start()
         except KeyboardInterrupt:
             pass
         finally:
