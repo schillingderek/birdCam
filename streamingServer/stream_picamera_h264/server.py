@@ -84,18 +84,18 @@ def stream():
                     websocketd.manager.broadcast(frame_data, binary=True)
                 else:
                     print("No frame data received")
-                if time.time() - startTime > 10 and not is_recording:
-                    print("starting to record")
-                    timestamp = timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    videoCaptureOutput.fileoutput = f"/root/birdcam/streamingServer/stream_picamera_h264/images/snap_{timestamp}.h264"
-                    videoCaptureOutput.start()
-                    is_recording = True
-                    startTime = time.time()
-                elif time.time() - startTime > 10 and is_recording:
-                    print("stopping recording")
-                    videoCaptureOutput.stop()
-                    is_recording = False
-                    startTime = time.time()
+                # if time.time() - startTime > 10 and not is_recording:
+                #     print("starting to record")
+                #     timestamp = timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                #     videoCaptureOutput.fileoutput = f"/root/birdcam/streamingServer/stream_picamera_h264/images/snap_{timestamp}.h264"
+                #     videoCaptureOutput.start()
+                #     is_recording = True
+                #     startTime = time.time()
+                # elif time.time() - startTime > 10 and is_recording:
+                #     print("stopping recording")
+                #     videoCaptureOutput.stop()
+                #     is_recording = False
+                #     startTime = time.time()
 
         except KeyboardInterrupt:
             pass
