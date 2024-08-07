@@ -46,21 +46,21 @@ class Camera:
         self.streaming_encoder = H264Encoder()
         self.streaming_encoder.bitrate = 2500000
         self.streaming_encoder.profile = 'baseline'
-        print(self.video_config['lores']['size'])
-        print(self.video_config['lores']['format'])
         self.streaming_encoder.size = self.video_config['lores']['size']
         self.streaming_encoder.format = self.video_config['lores']['format']
+        print(self.streaming_encoder.size)
+        print(self.streaming_encoder.format)
         self.stream_out = StreamingOutput()
         self.stream_out_2 = FileOutput(self.stream_out)
         self.streaming_encoder.output = [self.stream_out_2]
         self.camera.start_encoder(self.streaming_encoder)
+        self.camera.start()
         # self.camera.start_recording(videoCaptureEncoder, videoCaptureOutput)
 
 camera = Camera()
 
 def stream():
     global startTime
-    camera.camera.start()
     is_recording = False
     try:
         WebSocketWSGIHandler.http_version = '1.1'
