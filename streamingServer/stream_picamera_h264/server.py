@@ -46,6 +46,8 @@ class Camera:
         self.streaming_encoder = H264Encoder()
         self.streaming_encoder.bitrate = 2500000
         self.streaming_encoder.profile = 'baseline'
+        print(self.video_config['lores']['size'])
+        print(self.video_config['lores']['format'])
         self.streaming_encoder.size = self.video_config['lores']['size']
         self.streaming_encoder.format = self.video_config['lores']['format']
         self.stream_out = StreamingOutput()
