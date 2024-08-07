@@ -51,7 +51,6 @@ class Camera:
         self.stream_out = StreamingOutput()
         self.stream_out_2 = FileOutput(self.stream_out)
         self.streaming_encoder.output = [self.stream_out_2]
-        self.streaming_encoder.start()
         self.camera.start_encoder(self.streaming_encoder)
         # self.camera.start_recording(videoCaptureEncoder, videoCaptureOutput)
 
