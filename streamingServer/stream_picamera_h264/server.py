@@ -20,8 +20,8 @@ videoCaptureOutput = CircularOutput()
 
 startTime = time.time()
 
-width = 640
-height = 360
+width = 1280
+height = 720
 
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
