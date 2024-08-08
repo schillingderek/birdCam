@@ -165,7 +165,7 @@ class Camera:
     def __init__(self):
         self.picamera = picamera2.Picamera2()
         self.video_config = self.picamera.create_video_configuration(
-            {"size": (WIDTH, HEIGHT)}, lores={"size": (640, 360)}
+            {"size": (WIDTH, HEIGHT), "format": "RGB888"}, lores={"size": (640, 360)}
         )
         self.picamera.configure(self.video_config)
         self.streaming_encoder = H264Encoder()
@@ -292,8 +292,9 @@ class Camera:
 
     def capture_image(self):
         still_config = self.picamera.create_still_configuration({"size": (WIDTH, HEIGHT)})
-        self.job = self.picamera.switch_mode_and_capture_file(still_config, self.current_image_file, wait=False)
-        self.metadata = self.picamera.wait(self.job)
+        job = self.picamera.switch_mode_and_capture_file(still_config, self.current_image_file, wait=False)
+        metadata = self.picamera.wait(job)
+        
 
     def extract_frame_from_video(self):
         print("capturing frame at: ", time.time())
