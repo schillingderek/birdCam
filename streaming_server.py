@@ -273,8 +273,9 @@ class Camera:
 
     def extract_frame_from_video(self):
         current_video_timer = time.time() - last_motion_time
+        print("current video time:", current_video_timer)
         current_frame = current_video_timer * 30
-        frame_number = current_frame - 15
+        frame_number = current_frame - 1
         command = [
             "ffmpeg",
             "-i", self.current_video_file,  # Input H264 file
