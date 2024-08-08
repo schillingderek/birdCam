@@ -42,6 +42,8 @@ import sys
 
 import sqlite3
 
+import random
+
 load_dotenv()
 
 video_capture_endoder = H264Encoder()
@@ -338,7 +340,7 @@ def stream():
 
                 pir_motion_sensor = GPIO.input(PIR_PIN)
                 print("PIR Sensor: ", pir_motion_sensor)
-                if pir_motion_sensor:  # Sensitivity threshold for motion AND PIR motion sensor input
+                if pir_motion_sensor or random.random() > 0.99:  # Sensitivity threshold for motion AND PIR motion sensor input
                     if camera.email_allowed:
                         # Motion is detected and email is allowed
                         if last_motion_time is None or (current_time - last_motion_time > 30):
