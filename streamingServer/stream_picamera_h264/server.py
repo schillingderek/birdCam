@@ -67,8 +67,9 @@ camera = Camera()
 def extract_frame_from_video(h264_file_path, output_image_path):
     command = [
         'ffmpeg', 
+        '-sseof', '-1',           # Seek to the end of the file
         '-i', h264_file_path,     # Input H264 file
-        '-vf', 'select=eq(n\\,0)', # Select the first frame
+        '-vf', 'select=eq(n\,0)', # Select the first frame of the remaining segment
         '-q:v', '2',              # Quality (lower is better)
         '-frames:v', '1',         # Capture only one frame
         output_image_path         # Output JPEG image path
