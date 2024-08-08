@@ -64,14 +64,15 @@ class Camera:
 
 camera = Camera()
 
-def extract_frame_from_video(h264_file_path, output_image_path, timestamp):
+def extract_frame_from_video(h264_file_path, output_image_path, frame_number):
     command = [
-        'ffmpeg', 
-        '-ss', timestamp,           # Seek to the end of the file
-        '-i', h264_file_path,     # Input H264 file
-        '-q:v', '2',              # Quality (lower is better)
-        '-frames:v', '1',         # Capture only one frame
-        output_image_path         # Output JPEG image path
+        'ffmpeg',
+        '-i', h264_file_path,        # Input H264 file
+        '-vf', f'select=eq(n\\,{frame_number})',  # Filter to select the frame by number
+        '-vsync', 'vfr',             # Variable frame rate to avoid duplicate frames
+        '-q:v', '2',                 # Quality (lower is better)
+        '-frames:v', '1',            # Capture only one frame
+        output_image_path            # Output JPEG image path
     ]
     subprocess.run(command, check=True)
 
@@ -125,7 +126,7 @@ def stream():
                 elif time.time() - startTime > 12 and is_recording and not first_extraction:
                     print("extract frame mid stream")
                     jpeg_image_path = f"/root/birdcam/streamingServer/stream_picamera_h264/images/snap_{timestamp}_1.jpg"
-                    extract_frame_from_video(h264_file_path, jpeg_image_path, "00:00:01")
+                    extract_frame_from_video(h264_file_path, jpeg_image_path, 15)
                     first_extraction = True
                 elif time.time() - startTime > 20 and is_recording and not recording_complete:
                     print("stopping recording")
@@ -133,7 +134,7 @@ def stream():
                     recording_complete = True
                     is_recording = False
                     jpeg_image_path = f"/root/birdcam/streamingServer/stream_picamera_h264/images/snap_{timestamp}_2.jpg"
-                    extract_frame_from_video(h264_file_path, jpeg_image_path, "00:00:09")
+                    extract_frame_from_video(h264_file_path, jpeg_image_path, 285)
 
         except KeyboardInterrupt:
             pass
