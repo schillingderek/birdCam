@@ -174,6 +174,7 @@ class Camera:
         self.drive_image_id = None
         self.current_image_file = None
         self.current_video_file = None
+        self.start_recording_time = None
 
         self.picamera.start()
 
@@ -243,6 +244,7 @@ class Camera:
             video_capture_output.fileoutput = self.current_video_file
             video_capture_output.start()
             self.is_recording = True
+            self.start_recording_time = time.time()
 
     def stop_recording(self):
         if self.is_recording:
@@ -274,7 +276,7 @@ class Camera:
         logging.info("Upload Completed.")
 
     def extract_frame_from_video(self):
-        current_video_timer = time.time() - last_motion_time
+        current_video_timer = time.time() - self.start_recording_time
         print("current video time:", current_video_timer)
         current_frame = current_video_timer * 30
         frame_number = current_frame - 1
@@ -339,7 +341,7 @@ def stream():
                                                                         # Motion Detection Handler
 
                 pir_motion_sensor = GPIO.input(PIR_PIN)
-                print("PIR Sensor: ", pir_motion_sensor)
+                # print("PIR Sensor: ", pir_motion_sensor)
                 if pir_motion_sensor or random.random() > 0.99:  # Sensitivity threshold for motion AND PIR motion sensor input
                     if camera.email_allowed:
                         # Motion is detected and email is allowed
