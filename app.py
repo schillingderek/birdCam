@@ -73,11 +73,7 @@ def get_predictions():
 
 ##############################################################################################################################################################
 
-class VideoFeed(Resource):
-    def get(self):
-        if 'username' not in session:
-            return redirect(url_for('login'))  # Ensure this follows your app's login logic
-        return Response(genFrames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
 
 ##############################################################################################################################################################
 
@@ -149,8 +145,6 @@ def files():
         return render_template('files.html', images=images, videos=videos)
     except Exception as e:
         return str(e)  # For debugging purposes, show the exception in the browser
-
-api.add_resource(VideoFeed, '/cam')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

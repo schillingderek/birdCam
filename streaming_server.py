@@ -336,36 +336,36 @@ def stream():
                 else:
                     print("No frame data received")
 
-                if camera.is_recording:
-                    camera.periodically_capture_and_process_frame()
+#                 if camera.is_recording:
+#                     camera.periodically_capture_and_process_frame()
 
-##############################################################################################################################################################
+# ##############################################################################################################################################################
 
-                                                                        # Motion Detection Handler
+#                                                                         # Motion Detection Handler
 
-                pir_motion_sensor = GPIO.input(PIR_PIN)
-                # print("PIR Sensor: ", pir_motion_sensor)
-                if pir_motion_sensor:  # Sensitivity threshold for motion AND PIR motion sensor input
-                    if camera.email_allowed:
-                        # Motion is detected and email is allowed
-                        if last_motion_time is None or (current_time - last_motion_time > 30):
-                            send_email("Motion Detected", "Motion has been detected by your camera.", sender_email, receiver_email, app_password)
-                            logging.info("Motion detected and email sent.")
-                            last_motion_time = current_time  # Update the last motion time
-                            camera.email_allowed = False  # Prevent further emails until condition resets
-                            camera.start_recording()  # Start recording when motion is detected
-                        # else:
-                        #     logging.info("Motion detected but not eligible for email due to cooldown.")
-                    # else:
-                    #     logging.info("Motion detected but email not sent due to recent activity.")
-                    camera.last_motion_detected_time = current_time
-                else:
-                    # No motion detected
-                    if camera.last_motion_detected_time and (current_time - camera.last_motion_detected_time > 30) and not camera.email_allowed:
-                        camera.email_allowed = True  # Re-enable sending emails after 30 seconds of no motion
-                        logging.info("30 seconds of no motion passed, emails re-enabled.")
-                        camera.last_motion_detected_time = current_time  # Reset to prevent message re-logging.infoing
-                        camera.stop_recording()  # Stop recording when no motion is detected for 30 seconds
+#                 pir_motion_sensor = GPIO.input(PIR_PIN)
+#                 # print("PIR Sensor: ", pir_motion_sensor)
+#                 if pir_motion_sensor:  # Sensitivity threshold for motion AND PIR motion sensor input
+#                     if camera.email_allowed:
+#                         # Motion is detected and email is allowed
+#                         if last_motion_time is None or (current_time - last_motion_time > 30):
+#                             send_email("Motion Detected", "Motion has been detected by your camera.", sender_email, receiver_email, app_password)
+#                             logging.info("Motion detected and email sent.")
+#                             last_motion_time = current_time  # Update the last motion time
+#                             camera.email_allowed = False  # Prevent further emails until condition resets
+#                             camera.start_recording()  # Start recording when motion is detected
+#                         # else:
+#                         #     logging.info("Motion detected but not eligible for email due to cooldown.")
+#                     # else:
+#                     #     logging.info("Motion detected but email not sent due to recent activity.")
+#                     camera.last_motion_detected_time = current_time
+#                 else:
+#                     # No motion detected
+#                     if camera.last_motion_detected_time and (current_time - camera.last_motion_detected_time > 30) and not camera.email_allowed:
+#                         camera.email_allowed = True  # Re-enable sending emails after 30 seconds of no motion
+#                         logging.info("30 seconds of no motion passed, emails re-enabled.")
+#                         camera.last_motion_detected_time = current_time  # Reset to prevent message re-logging.infoing
+#                         camera.stop_recording()  # Stop recording when no motion is detected for 30 seconds
 
                 
 
