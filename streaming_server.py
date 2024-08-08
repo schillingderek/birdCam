@@ -245,6 +245,7 @@ class Camera:
             video_capture_output.start()
             self.is_recording = True
             self.start_recording_time = time.time()
+            print("video started at: ", self.start_recording_time)
 
     def stop_recording(self):
         if self.is_recording:
@@ -276,6 +277,7 @@ class Camera:
         logging.info("Upload Completed.")
 
     def extract_frame_from_video(self):
+        print("capturing frame at: ", time.time())
         current_video_timer = time.time() - self.start_recording_time
         print("current video time:", current_video_timer)
         current_frame = current_video_timer * 30
