@@ -182,7 +182,7 @@ class Camera:
         self.bird_id = []  # Change to a list to hold multiple detections
         self.bird_score = []  # Change to a list to hold multiple detections
         self.last_capture_time = time.time()
-        self.periodic_image_capture_delay = 60
+        self.periodic_image_capture_delay = 20
         self.drive_image_id = None
         self.current_image_file = None
         self.current_video_file = None
@@ -299,9 +299,7 @@ class Camera:
         command = [
             "ffmpeg",
             "-i", self.current_video_file,  # Input H264 file
-            "-vf", f"select=eq(n\\,{frame_number})",  # Filter to select the frame by number
-            "-fps_mode", "vfr",  # Variable frame rate to avoid duplicate frames
-            "-pix_fmt", "yuv420p", 
+            "-vf", f"select=eq(n\\,1)",  # Filter to select the frame by number
             "-q:v", "2",  # Quality (lower is better)
             "-frames:v", "1",  # Capture only one frame
             self.current_image_file,  # Output JPEG image path
