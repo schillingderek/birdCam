@@ -29,14 +29,32 @@ WIDTH = 1280
 HEIGHT = 720
 
 
+# class StreamingOutput(io.BufferedIOBase):
+#     def __init__(self):
+#         self.frame = None
+#         self.condition = Condition()
+
+#     def write(self, buf):
+#         with self.condition:
+#             self.frame = buf
+#             self.condition.notify_all()
+
+#     def read(self):
+#         with self.condition:
+#             self.condition.wait()
+#             return self.frame
+        
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
         self.frame = None
         self.condition = Condition()
+        self.buffer = io.BytesIO()  # Buffer to hold frame data
 
     def write(self, buf):
         with self.condition:
-            self.frame = buf
+            self.buffer.write(buf)
+            self.buffer.seek(0)
+            self.frame = self.buffer.read()
             self.condition.notify_all()
 
     def read(self):
@@ -64,16 +82,11 @@ class Camera:
 
 camera = Camera()
 
-def extract_frame_from_video(h264_file_path, output_image_path):
-    command = [
-        'ffmpeg', 
-        '-i', h264_file_path,     # Input H264 file
-        '-vf', 'select=eq(n\\,0)', # Select the first frame
-        '-q:v', '2',              # Quality (lower is better)
-        '-frames:v', '1',         # Capture only one frame
-        output_image_path         # Output JPEG image path
-    ]
-    subprocess.run(command, check=True)
+def convert_frame_to_image(frame_data):
+    # Use ffmpeg to decode the H264 frame data to raw YUV format
+    # Then convert raw YUV format to PIL image
+    img = Image.fromarray(np.frombuffer(frame_data, np.uint8).reshape((HEIGHT, WIDTH, 3)), 'RGB')
+    return img
 
 
 def stream():
@@ -113,20 +126,29 @@ def stream():
                     websocketd.manager.broadcast(frame_data, binary=True)
                 else:
                     print("No frame data received")
-                if time.time() - startTime > 10 and not recording_complete and not is_recording:
-                    print("starting to record")
-                    timestamp = timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                    h264_file_path = f"/root/birdcam/streamingServer/stream_picamera_h264/images/snap_{timestamp}.h264"
-                    video_capture_output.fileoutput = h264_file_path
-                    video_capture_output.start()
-                    is_recording = True
-                elif time.time() - startTime > 20 and is_recording and not recording_complete:
-                    print("stopping recording")
-                    video_capture_output.stop()
-                    recording_complete = True
-                    is_recording = False
+
+                if time.time() - startTime > 10 and not recording_complete:
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                     jpeg_image_path = f"/root/birdcam/streamingServer/stream_picamera_h264/images/snap_{timestamp}.jpg"
-                    extract_frame_from_video(h264_file_path, jpeg_image_path)
+                    print("trying to capture frame to file")
+                    img = convert_frame_to_image(frame_data)
+                    img.save(jpeg_image_path, 'JPEG')
+                    recording_complete = True
+
+                # if time.time() - startTime > 10 and not recording_complete and not is_recording:
+                #     print("starting to record")
+                #     timestamp = timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                #     h264_file_path = f"/root/birdcam/streamingServer/stream_picamera_h264/images/snap_{timestamp}.h264"
+                #     video_capture_output.fileoutput = h264_file_path
+                #     video_capture_output.start()
+                #     is_recording = True
+                # elif time.time() - startTime > 20 and is_recording and not recording_complete:
+                #     print("stopping recording")
+                #     video_capture_output.stop()
+                #     recording_complete = True
+                #     is_recording = False
+                #     jpeg_image_path = f"/root/birdcam/streamingServer/stream_picamera_h264/images/snap_{timestamp}.jpg"
+                #     extract_frame_from_video(h264_file_path, jpeg_image_path)
 
         except KeyboardInterrupt:
             pass
