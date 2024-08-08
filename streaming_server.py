@@ -337,6 +337,7 @@ def stream():
                                                                         # Motion Detection Handler
 
                 pir_motion_sensor = GPIO.input(PIR_PIN)
+                print("PIR Sensor: ", pir_motion_sensor)
                 if pir_motion_sensor:  # Sensitivity threshold for motion AND PIR motion sensor input
                     if camera.email_allowed:
                         # Motion is detected and email is allowed
