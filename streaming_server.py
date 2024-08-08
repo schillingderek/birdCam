@@ -191,7 +191,7 @@ class Camera:
         self.picamera.start()
 
     def perform_obj_detection_and_inference(self):
-        # logging.info("Processing frame at: ", self.current_image_file)
+        logging.info(f"Processing frame at: {self.current_image_file}")
         try:
             url = "https://inferenceserver-ef6censsqa-uc.a.run.app/process_image"
             data = {'file_id': self.drive_image_id}
@@ -274,7 +274,6 @@ class Camera:
         logging.info("Capturing frame from video stream")
         timestamp = show_time()
         self.current_image_file = f"{images_dir}/snap_{timestamp}.jpg"
-        # self.extract_frame_from_video()
         self.capture_image()
         self.uploadImageFile()
         self.perform_obj_detection_and_inference()
@@ -294,24 +293,6 @@ class Camera:
         request = self.picamera.capture_request()
         request.save("main", self.current_image_file)
         request.release()
-        
-
-    def extract_frame_from_video(self):
-        print("capturing frame at: ", time.time())
-        current_video_timer = time.time() - self.start_recording_time
-        print("current video time:", current_video_timer)
-        current_frame = current_video_timer * 30
-        frame_number = current_frame - 1
-        time.sleep(1)
-        command = [
-            "ffmpeg",
-            "-i", self.current_video_file,  # Input H264 file
-            "-vf", f"select=eq(n\\,{frame_number})",  # Filter to select the frame by number
-            "-q:v", "2",  # Quality (lower is better)
-            "-frames:v", "1",  # Capture only one frame
-            self.current_image_file,  # Output JPEG image path
-        ]
-        subprocess.run(command, check=True)
 
 
 camera = Camera()
@@ -364,7 +345,7 @@ def stream():
 
                 pir_motion_sensor = GPIO.input(PIR_PIN)
                 # print("PIR Sensor: ", pir_motion_sensor)
-                if pir_motion_sensor or random.random() > 0.99:  # Sensitivity threshold for motion AND PIR motion sensor input
+                if pir_motion_sensor:  # Sensitivity threshold for motion AND PIR motion sensor input
                     if camera.email_allowed:
                         # Motion is detected and email is allowed
                         if last_motion_time is None or (current_time - last_motion_time > 30):

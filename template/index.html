@@ -29,7 +29,7 @@
             margin-bottom: 10px;
             position: relative;
         }
-        .streaming-container img {
+        #viewer {
             width: 100%;
             height: calc(100vh - 140px); /* Adjust to fit the screen excluding button and info container heights */
             border-radius: 4px;
@@ -110,7 +110,7 @@
             <!-- Streaming Container -->
             <div class="col-xs-12">
                 <div class="streaming-container">
-                    <img src="{{'cam'}}" alt="Camera Stream">
+                    <div id="viewer"></div>
                 </div>
             </div>
             <!-- Logout and Info Container -->
@@ -127,5 +127,36 @@
             </div>
         </div>
     </div>
+    <script src="{{ url_for('static', filename='Decoder.js') }}"></script>
+    <script src="{{ url_for('static', filename='YUVCanvas.js') }}"></script>
+    <script src="{{ url_for('static', filename='Player.js') }}"></script>
+    <script>
+        // Initialize player
+        window.player = new Player({ useWorker: true, webgl: 'auto', size: { width: 640, height: 360 } });
+        var playerElement = document.getElementById('viewer');
+        playerElement.appendChild(window.player.canvas);
+
+        // WebSocket setup
+        var wsUri = window.location.protocol.replace(/http/, 'ws') + '//' + window.location.hostname + ':9000';
+        var ws = new WebSocket(wsUri);
+        ws.binaryType = 'arraybuffer';
+
+        ws.onopen = function (e) {
+            console.log('Client connected');
+        };
+
+        ws.onmessage = function (msg) {
+            try {
+                let data = new Uint8Array(msg.data);
+                window.player.decode(data);
+            } catch (e) {
+                console.error('Error decoding frame:', e);
+            }
+        };
+
+        ws.onclose = function (e) {
+            console.log('Client disconnected');
+        };
+    </script>
 </body>
 </html>

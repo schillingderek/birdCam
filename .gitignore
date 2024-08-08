@@ -3,3 +3,4 @@ settings.yaml
 getDriveCredentials.py
 .env
 **/venv
+.venv
