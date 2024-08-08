@@ -182,7 +182,7 @@ class Camera:
         self.bird_id = []  # Change to a list to hold multiple detections
         self.bird_score = []  # Change to a list to hold multiple detections
         self.last_capture_time = time.time()
-        self.periodic_image_capture_delay = 20
+        self.periodic_image_capture_delay = 60
         self.drive_image_id = None
         self.current_image_file = None
         self.current_video_file = None
@@ -243,9 +243,10 @@ class Camera:
     def periodically_capture_and_process_frame(self):
         current_time = time.time()
         if current_time - self.last_capture_time > self.periodic_image_capture_delay:
+            self.last_capture_time = current_time
             capture_process_frame_thread = Thread(target=self.capture_and_process_frame)
             capture_process_frame_thread.start()
-            self.last_capture_time = current_time
+            
     
     def start_recording(self):
         if not self.is_recording:
@@ -299,7 +300,8 @@ class Camera:
             "ffmpeg",
             "-i", self.current_video_file,  # Input H264 file
             "-vf", f"select=eq(n\\,{frame_number})",  # Filter to select the frame by number
-            "-vsync", "vfr",  # Variable frame rate to avoid duplicate frames
+            "-fps_mode", "vfr",  # Variable frame rate to avoid duplicate frames
+            "-pix_fmt", "yuv420p", 
             "-q:v", "2",  # Quality (lower is better)
             "-frames:v", "1",  # Capture only one frame
             self.current_image_file,  # Output JPEG image path
