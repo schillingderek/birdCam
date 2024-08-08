@@ -274,7 +274,8 @@ class Camera:
         logging.info("Capturing frame from video stream")
         timestamp = show_time()
         self.current_image_file = f"{images_dir}/snap_{timestamp}.jpg"
-        self.extract_frame_from_video()
+        # self.extract_frame_from_video()
+        self.capture_image()
         self.uploadImageFile()
         self.perform_obj_detection_and_inference()
         self.store_inference()
@@ -289,6 +290,11 @@ class Camera:
         f = None
         logging.info("Upload Completed.")
 
+    def capture_image(self):
+        still_config = self.picamera.create_still_configuration({"size": (WIDTH, HEIGHT)})
+        self.job = self.picamera.switch_mode_and_capture_file(still_config, self.current_image_file, wait=False)
+        self.metadata = self.picamera.wait(self.job)
+
     def extract_frame_from_video(self):
         print("capturing frame at: ", time.time())
         current_video_timer = time.time() - self.start_recording_time
@@ -299,7 +305,7 @@ class Camera:
         command = [
             "ffmpeg",
             "-i", self.current_video_file,  # Input H264 file
-            "-vf", f"select=eq(n\\,1)",  # Filter to select the frame by number
+            "-vf", f"select=eq(n\\,{frame_number})",  # Filter to select the frame by number
             "-q:v", "2",  # Quality (lower is better)
             "-frames:v", "1",  # Capture only one frame
             self.current_image_file,  # Output JPEG image path
