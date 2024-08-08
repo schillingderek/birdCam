@@ -72,6 +72,7 @@ def stream():
     camera.picamera.start_encoder(
         video_capture_endoder, video_capture_output, name="main"
     )
+    recording_complete = False
     is_recording = False
     try:
         WebSocketWSGIHandler.http_version = "1.1"
@@ -100,15 +101,16 @@ def stream():
                     websocketd.manager.broadcast(frame_data, binary=True)
                 else:
                     print("No frame data received")
-                if time.time() - startTime > 10 and not is_recording:
+                if time.time() - startTime > 10 and not recording_complete and not is_recording:
                     print("starting to record")
                     timestamp = timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                     video_capture_output.fileoutput = f"/root/birdcam/streamingServer/stream_picamera_h264/images/snap_{timestamp}.h264"
                     video_capture_output.start()
                     is_recording = True
-                elif time.time() - startTime > 20 and is_recording:
+                elif time.time() - startTime > 20 and is_recording and not recording_complete:
                     print("stopping recording")
                     video_capture_output.stop()
+                    recording_complete = True
                     is_recording = False
 
         except KeyboardInterrupt:
