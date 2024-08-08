@@ -146,12 +146,13 @@
         };
 
         ws.onmessage = function (msg) {
-            try {
-                let data = new Uint8Array(msg.data);
-                window.player.decode(data);
-            } catch (e) {
-                console.error('Error decoding frame:', e);
-            }
+        console.log('Received frame of size:', msg.data.byteLength);
+        try {
+            let data = new Uint8Array(msg.data);
+            window.player.decode(data);
+        } catch (e) {
+            console.error('Error decoding frame:', e);
+        }
         };
 
         ws.onclose = function (e) {
