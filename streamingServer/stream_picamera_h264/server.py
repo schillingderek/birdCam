@@ -24,8 +24,8 @@ video_capture_output = CircularOutput()
 
 startTime = time.time()
 
-width = 960
-height = 540
+WIDTH = 1280
+HEIGHT = 720
 
 
 class StreamingOutput(io.BufferedIOBase):
@@ -48,7 +48,7 @@ class Camera:
     def __init__(self):
         self.picamera = picamera2.Picamera2()
         self.video_config = self.picamera.create_video_configuration(
-            {"size": (width, height)}, lores={"size": (640, 360)}
+            {"size": (WIDTH, HEIGHT)}, lores={"size": (640, 360)}
         )
         self.picamera.configure(self.video_config)
         self.streaming_encoder = H264Encoder()
@@ -66,10 +66,13 @@ camera = Camera()
 
 def stream():
 
-    camera.picamera.start_encoder(camera.streaming_encoder, camera.streaming_output, name='lores')
-    camera.picamera.start_encoder(video_capture_endoder, video_capture_output, name='main')
-    # global startTime
-    # is_recording = False
+    camera.picamera.start_encoder(
+        camera.streaming_encoder, camera.streaming_output, name="lores"
+    )
+    camera.picamera.start_encoder(
+        video_capture_endoder, video_capture_output, name="main"
+    )
+    is_recording = False
     try:
         WebSocketWSGIHandler.http_version = "1.1"
         websocketd = make_server(
@@ -97,18 +100,16 @@ def stream():
                     websocketd.manager.broadcast(frame_data, binary=True)
                 else:
                     print("No frame data received")
-                # if time.time() - startTime > 10 and not is_recording:
-                #     print("starting to record")
-                #     timestamp = timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                #     videoCaptureOutput.fileoutput = f"/root/birdcam/streamingServer/stream_picamera_h264/images/snap_{timestamp}.h264"
-                #     videoCaptureOutput.start()
-                #     is_recording = True
-                #     startTime = time.time()
-                # elif time.time() - startTime > 10 and is_recording:
-                #     print("stopping recording")
-                #     videoCaptureOutput.stop()
-                #     is_recording = False
-                #     startTime = time.time()
+                if time.time() - startTime > 10 and not is_recording:
+                    print("starting to record")
+                    timestamp = timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    video_capture_output.fileoutput = f"/root/birdcam/streamingServer/stream_picamera_h264/images/snap_{timestamp}.h264"
+                    video_capture_output.start()
+                    is_recording = True
+                elif time.time() - startTime > 20 and is_recording:
+                    print("stopping recording")
+                    video_capture_output.stop()
+                    is_recording = False
 
         except KeyboardInterrupt:
             pass
