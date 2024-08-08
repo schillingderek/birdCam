@@ -132,6 +132,18 @@ def send_email(subject, body, sender, receiver, password):
     thread = Thread(target=email_thread)
     thread.start()
 
+def get_video_duration(video_file):
+    """Get the duration of the video in seconds using ffprobe."""
+    command = [
+        "ffprobe",
+        "-v", "error",
+        "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1",
+        video_file
+    ]
+    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    return float(result.stdout.strip())
+
 
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
@@ -282,6 +294,7 @@ class Camera:
         print("current video time:", current_video_timer)
         current_frame = current_video_timer * 30
         frame_number = current_frame - 1
+        time.sleep(1)
         command = [
             "ffmpeg",
             "-i", self.current_video_file,  # Input H264 file
