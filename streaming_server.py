@@ -291,9 +291,9 @@ class Camera:
         logging.info("Upload Completed.")
 
     def capture_image(self):
-        still_config = self.picamera.create_still_configuration({"size": (WIDTH, HEIGHT)})
-        job = self.picamera.switch_mode_and_capture_file(still_config, self.current_image_file, wait=False)
-        metadata = self.picamera.wait(job)
+        request = self.picamera.capture_request()
+        request.save("main", self.current_image_file)
+        request.release()
         
 
     def extract_frame_from_video(self):
