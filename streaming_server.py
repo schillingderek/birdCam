@@ -19,6 +19,8 @@ import time
 from datetime import datetime
 import subprocess
 
+import numpy as np
+
 import smtplib
 from email.mime.text import MIMEText
 
@@ -309,6 +311,8 @@ def stream():
         video_capture_endoder, video_capture_output, name="main"
     )
 
+    prev = None
+
     try:
         WebSocketWSGIHandler.http_version = "1.1"
         websocketd = make_server(
@@ -325,6 +329,7 @@ def stream():
             websocketd_thread.start()
 
             while True:
+                mse = 0
                 current_time = time.time()
                 # Read from the StreamingOutput and broadcast via WebSocket
                 frame_data = camera.stream_out.read()
@@ -341,10 +346,15 @@ def stream():
 
                                                                         # Motion Detection Handler
 
+
+                
+                if prev is not None:
+                    mse = np.square(np.subtract(frame_data, prev)).mean()
+                    print("MSE Value: ", str(mse))
+                
                 pir_motion_sensor = GPIO.input(PIR_PIN)
-                print(pir_motion_sensor)
-                # print("PIR Sensor: ", pir_motion_sensor)
-                if pir_motion_sensor:  # Sensitivity threshold for motion AND PIR motion sensor input
+                print("PIR Sensor: ", pir_motion_sensor)
+                if pir_motion_sensor and mse > 7:
                     if camera.email_allowed:
                         # Motion is detected and email is allowed
                         if last_motion_time is None or (current_time - last_motion_time > 30):
@@ -365,6 +375,8 @@ def stream():
                         logging.info("30 seconds of no motion passed, emails re-enabled.")
                         camera.last_motion_detected_time = current_time  # Reset to prevent message re-logging.infoing
                         camera.stop_recording()  # Stop recording when no motion is detected for 30 seconds
+
+                prev = frame_data
 
                 
 
