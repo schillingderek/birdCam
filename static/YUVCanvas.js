@@ -55,8 +55,8 @@
     
     this.conversionType = parOptions.conversionType || "rec601";
 
-    this.width = parOptions.width || 640;
-    this.height = parOptions.height || 320;
+    this.width = parOptions.width || 853;
+    this.height = parOptions.height || 480;
     
     this.animationTime = parOptions.animationTime || 0;
     
