@@ -55,12 +55,8 @@ def get_predictions():
     conn = sqlite3.connect('/root/birdcam/db/bird_predictions.db')
     cursor = conn.cursor()
 
-    # Get the current time and calculate the cutoff time for 20 seconds ago
-    current_time = time.time()
-    cutoff_time = current_time - 20
-
     # Fetch predictions from the last 20 seconds
-    cursor.execute('SELECT timestamp, bird_species, confidence FROM predictions WHERE timestamp >= ? ORDER BY timestamp DESC', (cutoff_time,))
+    cursor.execute("SELECT timestamp, bird_species, confidence FROM predictions WHERE timestamp >= datetime('now', '-20 seconds') DESC")
     predictions = cursor.fetchall()
 
     conn.close()
