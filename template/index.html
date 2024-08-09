@@ -37,7 +37,7 @@
         }
         .bird-identification-container {
             background-color: #333333;
-            padding: 5px;
+            padding: 10px; /* Increased padding for better spacing */
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.5);
             text-align: center;
@@ -46,16 +46,18 @@
             display: flex;
             flex-direction: column;
             justify-content: center; /* Center the content vertically */
+            overflow: auto; /* Allow scrolling if content exceeds the height */
         }
         .bird-identification-container h3 {
             font-size: 16px;
             margin: 0;
-            line-height: 40px; /* Adjust line-height for better vertical alignment */
+            line-height: 24px; /* Adjust line-height for better vertical alignment */
         }
         .bird-identification-container iframe {
             width: 100%;
-            height: 30px; /* Low height for the iframe */
+            height: auto; /* Allow iframe height to adjust */
             border: none;
+            flex-grow: 1; /* Allow iframe to take up available space */
         }
         button {
             background-color: #009688;
