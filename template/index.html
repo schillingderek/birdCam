@@ -16,10 +16,13 @@
             color: white;
             margin: 0;
             padding: 0;
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
+
         .container-fluid {
             padding: 0;
         }
+
         .streaming-container {
             background-color: #333333;
             padding: 10px;
@@ -30,36 +33,45 @@
             position: relative;
             display: flex;
             justify-content: space-between;
+            box-sizing: border-box; /* Include padding and border in width/height */
+            max-width: 100%; /* Prevent the container from exceeding the screen width */
         }
+
         #viewer {
-            width: 70%; /* Set width of the video player */
-            height: auto; /* Let the height adjust automatically */
+            width: 70%;
+            height: auto;
             border-radius: 4px;
-            flex-grow: 1; /* Allow the video to grow to fill available space */
+            flex-grow: 1;
+            box-sizing: border-box; /* Include padding and border in width/height */
         }
+
         .bird-identification-container {
             background-color: #333333;
             padding: 10px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.5);
             text-align: center;
-            width: 30%; /* Set width of the Bird ID container */
+            width: 30%;
             display: flex;
             flex-direction: column;
             justify-content: center;
             overflow: auto;
+            box-sizing: border-box; /* Include padding and border in width/height */
         }
+
         .bird-identification-container h3 {
             font-size: 16px;
             margin: 0;
-            line-height: 24px; /* Adjust line-height for better vertical alignment */
+            line-height: 24px;
         }
+
         .bird-identification-container iframe {
             width: 100%;
-            height: auto; /* Allow iframe height to adjust */
+            height: auto;
             border: none;
-            flex-grow: 1; /* Allow iframe to take up available space */
+            flex-grow: 1;
         }
+
         button {
             background-color: #009688;
             color: white;
@@ -71,9 +83,11 @@
             font-size: 16px;
             border: none;
         }
+
         button:hover {
             background-color: #00796b;
         }
+
         @media (max-width: 800px) {
             .container-fluid {
                 padding: 0;
@@ -81,11 +95,11 @@
             .streaming-container, .bird-identification-container {
                 margin: 0;
                 padding: 5px;
-                flex-direction: column; /* Stack elements vertically on smaller screens */
+                flex-direction: column;
             }
             .bird-identification-container {
-                width: 100%; /* Full width for smaller screens */
-                height: auto; /* Allow height to adjust for smaller screens */
+                width: 100%;
+                height: auto;
             }
             button {
                 font-size: 14px;
@@ -104,7 +118,7 @@
                     <!-- Bird Identification Container -->
                     <div class="bird-identification-container">
                         <h3>Bird Identification</h3>
-                        <iframe src="info.html"></iframe>
+                        <iframe src="info.html"></iframe> <!-- Reference to info.html restored -->
                     </div>
                 </div>
             </div>
