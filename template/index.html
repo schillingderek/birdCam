@@ -45,21 +45,31 @@
             box-sizing: border-box; /* Include padding and border in width/height */
         }
 
-        .info-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
-            color: white;
+        .bird-identification-container {
+            background-color: #333333;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 30%;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            align-items: center;
-            padding: 10px;
-            z-index: 10; /* Ensure the overlay is above the video */
-            pointer-events: none; /* Allow clicks to pass through to the video */
+            overflow: auto;
+            box-sizing: border-box; /* Include padding and border in width/height */
+        }
+
+        .bird-identification-container h3 {
+            font-size: 16px;
+            margin: 0;
+            line-height: 24px;
+        }
+
+        .bird-identification-container iframe {
+            width: 100%;
+            height: auto;
+            border: none;
+            flex-grow: 1;
         }
 
         button {
@@ -82,10 +92,14 @@
             .container-fluid {
                 padding: 0;
             }
-            .streaming-container {
+            .streaming-container, .bird-identification-container {
                 margin: 0;
                 padding: 5px;
                 flex-direction: column;
+            }
+            .bird-identification-container {
+                width: 100%;
+                height: auto;
             }
             button {
                 font-size: 14px;
@@ -101,8 +115,11 @@
             <div class="col-xs-12">
                 <div class="streaming-container">
                     <div id="viewer"></div>
-                    <!-- Overlay for Bird Identification -->
-                    <div id="info-overlay" class="info-overlay"></div>
+                    <!-- Bird Identification Container -->
+                    <div class="bird-identification-container">
+                        <h3>Bird Identification</h3>
+                        <iframe src="info.html"></iframe> <!-- Reference to info.html restored -->
+                    </div>
                 </div>
             </div>
             <!-- Files Button -->
@@ -141,20 +158,6 @@
         ws.onclose = function (e) {
             console.log('Client disconnected');
         };
-
-        // Fetch and display bird identification info
-        function fetchInfo() {
-            fetch('info.html')
-                .then(response => response.text())
-                .then(data => {
-                    document.getElementById('info-overlay').innerHTML = data;
-                })
-                .catch(error => console.error('Error fetching info:', error));
-        }
-
-        // Call fetchInfo periodically or as needed
-        fetchInfo();
-        setInterval(fetchInfo, 5000); // Fetch every 5 seconds
     </script>
 </body>
 </html>
