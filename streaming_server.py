@@ -49,7 +49,7 @@ startTime = time.time()
 width_main = 1280
 height_main = 720
 
-width_lores = 840
+width_lores = 853
 height_lores = 480
 
 last_motion_time = None
