@@ -56,7 +56,7 @@ def get_predictions():
     cursor = conn.cursor()
 
     # Fetch predictions from the last 20 seconds
-    cursor.execute("SELECT timestamp, bird_species, confidence FROM predictions WHERE timestamp >= datetime('now', '-20 seconds') DESC")
+    cursor.execute("SELECT timestamp, bird_species, confidence FROM predictions WHERE timestamp >= datetime('now', '-20 seconds') ORDER BY timestamp DESC")
     predictions = cursor.fetchall()
 
     conn.close()
