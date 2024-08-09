@@ -301,6 +301,7 @@ camera = Camera()
 
 def stream():
     global last_motion_time
+    sensor_triggered_time = time.time()
 
     camera.picamera.start_encoder(
         camera.streaming_encoder, camera.streaming_output, name="lores"
@@ -343,7 +344,10 @@ def stream():
                                                                         # Motion Detection Handler
 
                 pir_motion_sensor = GPIO.input(PIR_PIN)
-                print("PIR Sensor: ", pir_motion_sensor)
+                if pir_motion_sensor:
+                    print("Motion triggered - time since last triggered: ", current_time - sensor_triggered_time)
+                    sensor_triggered_time = current_time
+
                 if pir_motion_sensor and mse > 7:
                     if camera.email_allowed:
                         # Motion is detected and email is allowed
