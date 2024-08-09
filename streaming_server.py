@@ -19,8 +19,6 @@ import time
 from datetime import datetime
 import subprocess
 
-import numpy as np
-
 import smtplib
 from email.mime.text import MIMEText
 
@@ -311,8 +309,6 @@ def stream():
         video_capture_endoder, video_capture_output, name="main"
     )
 
-    prev = None
-
     try:
         WebSocketWSGIHandler.http_version = "1.1"
         websocketd = make_server(
@@ -346,12 +342,6 @@ def stream():
 
                                                                         # Motion Detection Handler
 
-
-                
-                # if prev is not None:
-                #     mse = np.square(np.subtract(frame_data, prev)).mean()
-                #     print("MSE Value: ", str(mse))
-                print(frame_data)
                 pir_motion_sensor = GPIO.input(PIR_PIN)
                 print("PIR Sensor: ", pir_motion_sensor)
                 if pir_motion_sensor and mse > 7:
