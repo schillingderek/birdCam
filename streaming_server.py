@@ -348,10 +348,10 @@ def stream():
 
 
                 
-                if prev is not None:
-                    mse = np.square(np.subtract(frame_data, prev)).mean()
-                    print("MSE Value: ", str(mse))
-                
+                # if prev is not None:
+                #     mse = np.square(np.subtract(frame_data, prev)).mean()
+                #     print("MSE Value: ", str(mse))
+                print(frame_data)
                 pir_motion_sensor = GPIO.input(PIR_PIN)
                 print("PIR Sensor: ", pir_motion_sensor)
                 if pir_motion_sensor and mse > 7:
