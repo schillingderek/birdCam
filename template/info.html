@@ -25,7 +25,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-6 col-md-offset-3 innerFrame">
-                <h3>Bird Identification</h3>
+                <!-- <h3>Bird Identification</h3> -->
                 <div id="bird-info-container"></div>
             </div>
         </div>
@@ -42,8 +42,8 @@
                     birdInfoContainer.empty();
                     if (data.length > 0) {
                         data.forEach(bird => {
-                            birdInfoContainer.append('<p>Bird Type: ' + (bird.bird_id || 'N/A') + '</p>');
-                            birdInfoContainer.append('<p>Likelihood: ' + (bird.bird_score ? (bird.bird_score * 100).toFixed(2) + '%' : 'N/A') + '</p>');
+                            birdInfoContainer.append('<p>' + (bird.bird_id || 'N/A') + ': ' + (bird.bird_score ? (bird.bird_score * 100).toFixed(2) + '%' : 'N/A') + '</p>');
+                            // birdInfoContainer.append('<p>Likelihood: ' + (bird.bird_score ? (bird.bird_score * 100).toFixed(2) + '%' : 'N/A') + '</p>');
                         });
                     } else {
                         birdInfoContainer.append('<p>No birds detected.</p>');
