@@ -42,6 +42,7 @@ import sqlite3
 load_dotenv()
 
 video_capture_endoder = H264Encoder()
+video_capture_endoder.bitrate = 10000000
 video_capture_output = CircularOutput()
 
 startTime = time.time()
