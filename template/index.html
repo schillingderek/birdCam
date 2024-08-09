@@ -31,26 +31,40 @@
         }
         #viewer {
             width: 100%;
-            height: 360px; /* Set player height to 360 pixels */
+            height: calc(100vh - 140px); /* Adjust to fit the screen excluding button and info container heights */
             border-radius: 4px;
         }
-        .info-container {
+        .logout-button {
+            height: 50px; /* Same height for both */
+            background-color: red;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            vertical-align: top;
+        }
+        .bird-identification-container {
             background-color: #333333;
             padding: 5px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.5);
             text-align: center;
-            margin-top: 10px;
-            height: 100px; /* Increased height for more space */
+            display: inline-block;
+            width: calc(100% - 10px); /* Full width */
+            margin-left: 10px;
+            vertical-align: top;
+            height: 70px; /* Adjust height for better visibility */
         }
-        .info-container h3 {
+        .bird-identification-container h3 {
             font-size: 16px;
             margin: 0;
             line-height: 40px; /* Adjust line-height for better vertical alignment */
         }
-        .info-container iframe {
+        .bird-identification-container iframe {
             width: 100%;
-            height: 60px; /* Adjusted height for the iframe */
+            height: 30px; /* Low height for the iframe */
             border: none;
         }
         button {
@@ -71,9 +85,16 @@
             .container-fluid {
                 padding: 0;
             }
-            .streaming-container, .info-container {
+            .streaming-container, .bird-identification-container, .logout-button {
                 margin: 0;
                 padding: 5px;
+            }
+            .logout-button {
+                font-size: 12px;
+                width: auto;
+            }
+            .bird-identification-container {
+                width: 100%; /* Full width for smaller screens */
             }
             button {
                 font-size: 14px;
@@ -91,10 +112,11 @@
                     <div id="viewer"></div>
                 </div>
             </div>
-            <!-- Info Container -->
-            <div class="col-xs-12">
-                <div class="info-container">
-                    <h3>Info</h3>
+            <!-- Logout and Bird Identification Container -->
+            <div class="col-xs-12" style="display: flex; justify-content: space-between;">
+                <a href="{{ url_for('logout') }}" class="logout-button" target="_top">Logout</a>
+                <div class="bird-identification-container">
+                    <h3>Bird Identification</h3>
                     <iframe src="info.html"></iframe>
                 </div>
             </div>
@@ -123,13 +145,12 @@
         };
 
         ws.onmessage = function (msg) {
-        // console.log('Received frame of size:', msg.data.byteLength);
-        try {
-            let data = new Uint8Array(msg.data);
-            window.player.decode(data);
-        } catch (e) {
-            // console.error('Error decoding frame:', e);
-        }
+            try {
+                let data = new Uint8Array(msg.data);
+                window.player.decode(data);
+            } catch (e) {
+                // console.error('Error decoding frame:', e);
+            }
         };
 
         ws.onclose = function (e) {
