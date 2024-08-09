@@ -28,9 +28,10 @@
             text-align: center;
             margin-bottom: 10px;
             position: relative;
+            display: flex; /* Use flex to position the Bird ID container */
         }
         #viewer {
-            width: 100%;
+            width: 70%; /* Set width of the video player */
             height: 360px; /* Set the Player height to 360 pixels */
             border-radius: 4px;
         }
@@ -40,11 +41,11 @@
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.5);
             text-align: center;
-            display: inline-block;
-            width: calc(100% - 10px); /* Full width */
-            margin-left: 10px;
-            vertical-align: top;
-            height: 100px; /* Increased height for better visibility */
+            width: 30%; /* Set width of the Bird ID container */
+            height: 360px; /* Set height to match the video player */
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Center the content vertically */
         }
         .bird-identification-container h3 {
             font-size: 16px;
@@ -80,6 +81,7 @@
             }
             .bird-identification-container {
                 width: 100%; /* Full width for smaller screens */
+                height: auto; /* Allow height to adjust for smaller screens */
             }
             button {
                 font-size: 14px;
@@ -95,13 +97,11 @@
             <div class="col-xs-12">
                 <div class="streaming-container">
                     <div id="viewer"></div>
-                </div>
-            </div>
-            <!-- Bird Identification Container -->
-            <div class="col-xs-12" style="display: flex; justify-content: space-between;">
-                <div class="bird-identification-container">
-                    <h3>Bird Identification</h3>
-                    <iframe src="info.html"></iframe>
+                    <!-- Bird Identification Container -->
+                    <div class="bird-identification-container">
+                        <h3>Bird Identification</h3>
+                        <iframe src="info.html"></iframe>
+                    </div>
                 </div>
             </div>
             <!-- Files Button -->
