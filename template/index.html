@@ -28,36 +28,30 @@
             text-align: center;
             margin-bottom: 10px;
             position: relative;
-            display: flex; /* Use flex to position the Bird ID container */
         }
         #viewer {
-            width: 70%; /* Set width of the video player */
-            height: 360px; /* Set the Player height to 360 pixels */
+            width: 100%;
+            height: auto;
             border-radius: 4px;
         }
-        .bird-identification-container {
+        .info-container {
             background-color: #333333;
-            padding: 10px; /* Increased padding for better spacing */
+            padding: 10px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.5);
             text-align: center;
-            width: 30%; /* Set width of the Bird ID container */
-            height: 360px; /* Set height to match the video player */
+            height: 100%;
+            overflow-y: auto;
+        }
+        .row-flex {
             display: flex;
-            flex-direction: column;
-            justify-content: center; /* Center the content vertically */
-            overflow: auto; /* Allow scrolling if content exceeds the height */
+            justify-content: space-between;
         }
-        .bird-identification-container h3 {
-            font-size: 16px;
-            margin: 0;
-            line-height: 24px; /* Adjust line-height for better vertical alignment */
+        .col-video {
+            width: 70%;
         }
-        .bird-identification-container iframe {
-            width: 100%;
-            height: auto; /* Allow iframe height to adjust */
-            border: none;
-            flex-grow: 1; /* Allow iframe to take up available space */
+        .col-info {
+            width: 30%;
         }
         button {
             background-color: #009688;
@@ -74,42 +68,34 @@
             background-color: #00796b;
         }
         @media (max-width: 800px) {
-            .container-fluid {
-                padding: 0;
+            .row-flex {
+                flex-direction: column;
             }
-            .streaming-container, .bird-identification-container {
-                margin: 0;
-                padding: 5px;
-            }
-            .bird-identification-container {
-                width: 100%; /* Full width for smaller screens */
-                height: auto; /* Allow height to adjust for smaller screens */
-            }
-            button {
-                font-size: 14px;
-                padding: 8px;
+            .col-video, .col-info {
+                width: 100%;
             }
         }
     </style>
 </head>
 <body>
     <div class="container-fluid">
-        <div class="row">
+        <div class="row-flex">
             <!-- Streaming Container -->
-            <div class="col-xs-12">
+            <div class="col-video">
                 <div class="streaming-container">
                     <div id="viewer"></div>
-                    <!-- Bird Identification Container -->
-                    <div class="bird-identification-container">
-                        <h3>Bird Identification</h3>
-                        <iframe src="info.html"></iframe>
-                    </div>
                 </div>
             </div>
-            <!-- Files Button -->
-            <div class="col-xs-12">
-                <button onclick="window.location.href='/files'">Files</button>
+            <!-- Bird Identification Container -->
+            <div class="col-info">
+                <div class="info-container">
+                    <div id="bird-info-container"></div>
+                </div>
             </div>
+        </div>
+        <!-- Files Button -->
+        <div class="col-xs-12">
+            <button onclick="window.location.href='/files'">Files</button>
         </div>
     </div>
     <script src='/static/Decoder.js'></script>
@@ -131,12 +117,12 @@
         };
 
         ws.onmessage = function (msg) {
-            try {
-                let data = new Uint8Array(msg.data);
-                window.player.decode(data);
-            } catch (e) {
-                // console.error('Error decoding frame:', e);
-            }
+        try {
+            let data = new Uint8Array(msg.data);
+            window.player.decode(data);
+        } catch (e) {
+            console.error('Error decoding frame:', e);
+        }
         };
 
         ws.onclose = function (e) {
