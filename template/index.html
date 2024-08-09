@@ -31,19 +31,8 @@
         }
         #viewer {
             width: 100%;
-            height: calc(100vh - 140px); /* Adjust to fit the screen excluding button and info container heights */
+            height: 360px; /* Set the Player height to 360 pixels */
             border-radius: 4px;
-        }
-        .logout-button {
-            height: 50px; /* Same height for both */
-            background-color: red;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            font-size: 14px;
-            text-decoration: none;
-            display: inline-block;
-            vertical-align: top;
         }
         .bird-identification-container {
             background-color: #333333;
@@ -55,7 +44,7 @@
             width: calc(100% - 10px); /* Full width */
             margin-left: 10px;
             vertical-align: top;
-            height: 70px; /* Adjust height for better visibility */
+            height: 100px; /* Increased height for better visibility */
         }
         .bird-identification-container h3 {
             font-size: 16px;
@@ -85,13 +74,9 @@
             .container-fluid {
                 padding: 0;
             }
-            .streaming-container, .bird-identification-container, .logout-button {
+            .streaming-container, .bird-identification-container {
                 margin: 0;
                 padding: 5px;
-            }
-            .logout-button {
-                font-size: 12px;
-                width: auto;
             }
             .bird-identification-container {
                 width: 100%; /* Full width for smaller screens */
@@ -112,9 +97,8 @@
                     <div id="viewer"></div>
                 </div>
             </div>
-            <!-- Logout and Bird Identification Container -->
+            <!-- Bird Identification Container -->
             <div class="col-xs-12" style="display: flex; justify-content: space-between;">
-                <a href="{{ url_for('logout') }}" class="logout-button" target="_top">Logout</a>
                 <div class="bird-identification-container">
                     <h3>Bird Identification</h3>
                     <iframe src="info.html"></iframe>
