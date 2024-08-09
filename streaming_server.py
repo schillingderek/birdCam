@@ -326,7 +326,6 @@ def stream():
             websocketd_thread.start()
 
             while True:
-                mse = 0
                 current_time = time.time()
                 # Read from the StreamingOutput and broadcast via WebSocket
                 frame_data = camera.stream_out.read()
@@ -348,10 +347,10 @@ def stream():
                     print("Motion triggered - time since last triggered: ", current_time - sensor_triggered_time)
                     sensor_triggered_time = current_time
 
-                if pir_motion_sensor and mse > 7:
+                if pir_motion_sensor:
                     if camera.email_allowed:
                         # Motion is detected and email is allowed
-                        if last_motion_time is None or (current_time - last_motion_time > 30):
+                        if last_motion_time is None or (current_time - last_motion_time > 15):
                             send_email("Motion Detected", "Motion has been detected by your camera.", sender_email, receiver_email, app_password)
                             logging.info("Motion detected and email sent.")
                             last_motion_time = current_time  # Update the last motion time
@@ -364,15 +363,11 @@ def stream():
                     camera.last_motion_detected_time = current_time
                 else:
                     # No motion detected
-                    if camera.last_motion_detected_time and (current_time - camera.last_motion_detected_time > 30) and not camera.email_allowed:
-                        camera.email_allowed = True  # Re-enable sending emails after 30 seconds of no motion
-                        logging.info("30 seconds of no motion passed, emails re-enabled.")
+                    if camera.last_motion_detected_time and (current_time - camera.last_motion_detected_time > 15) and not camera.email_allowed:
+                        camera.email_allowed = True  # Re-enable sending emails after 15 seconds of no motion
+                        logging.info("15 seconds of no motion passed, emails re-enabled.")
                         camera.last_motion_detected_time = current_time  # Reset to prevent message re-logging.infoing
-                        camera.stop_recording()  # Stop recording when no motion is detected for 30 seconds
-
-                prev = frame_data
-
-                
+                        camera.stop_recording()  # Stop recording when no motion is detected for 15 seconds
 
         except KeyboardInterrupt:
             pass
