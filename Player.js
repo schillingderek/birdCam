@@ -31,7 +31,7 @@ p.decode(<binary>);
         // Node. Does not work with strict CommonJS, but
         // only CommonJS-like environments that support module.exports,
         // like Node.
-        module.exports = factory(require("./Decoder"), require("./YUVCanvas"));
+        module.exports = factory(require("./Decoder"), require("./static/YUVCanvas"));
     } else {
         // Browser globals (root is window)
         root.Player = factory(root.Decoder, root.YUVCanvas);
