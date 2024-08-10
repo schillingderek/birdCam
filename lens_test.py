@@ -7,7 +7,7 @@ import time
 picam2 = Picamera2()
 
 # Retrieve the still configuration (no call to a function)
-still_config = picam2.still_configuration(main={"size": (1920, 1080)})
+still_config = picam2.create_still_configuration(main={"size": (1920, 1080)})
 picam2.configure(still_config)
 
 # Start the camera
