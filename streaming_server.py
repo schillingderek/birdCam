@@ -330,6 +330,8 @@ def stream():
                 current_time = time.time()
                 # Read from the StreamingOutput and broadcast via WebSocket
                 frame_data = camera.stream_out.read()
+                cur = camera.picamera.capture_buffer("lores")
+                print(cur)
                 if frame_data:
                     # print("Sending frame of size:", len(frame_data))
                     websocketd.manager.broadcast(frame_data, binary=True)
