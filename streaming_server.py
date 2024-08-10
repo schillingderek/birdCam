@@ -349,6 +349,7 @@ def stream():
                                                                         # Motion Detection Handler
 
                 if current_time - last_motion_check > motion_detection_delay: #only check for motion every few seconds
+                    last_motion_check = current_time
                     pir_motion_sensor = GPIO.input(PIR_PIN)
                     cur = camera.picamera.capture_buffer("lores")
                     if prev is not None:
@@ -378,7 +379,7 @@ def stream():
                             logging.info("15 seconds of no motion passed, emails re-enabled.")
                             camera.last_motion_detected_time = current_time  # Reset to prevent message re-logging.infoing
                             camera.stop_recording()  # Stop recording when no motion is detected for 15 seconds
-                            
+
                     prev = cur
 
         except KeyboardInterrupt:
