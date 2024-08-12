@@ -342,7 +342,7 @@ def stream():
                     print("No frame data received")
 
                 # if camera.is_recording:
-                camera.periodically_capture_and_process_frame()
+                # camera.periodically_capture_and_process_frame()
 
 ##############################################################################################################################################################
 
