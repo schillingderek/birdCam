@@ -183,7 +183,7 @@ class Camera:
         self.bird_id = []  # Change to a list to hold multiple detections
         self.bird_score = []  # Change to a list to hold multiple detections
         self.last_capture_time = time.time()
-        self.periodic_image_capture_delay = 20
+        self.periodic_image_capture_delay = 60
         self.drive_image_id = None
         self.current_image_file = None
         self.current_video_file = None
@@ -341,46 +341,47 @@ def stream():
                 else:
                     print("No frame data received")
 
-                if camera.is_recording:
-                    camera.periodically_capture_and_process_frame()
+                # if camera.is_recording:
+                camera.periodically_capture_and_process_frame()
 
 ##############################################################################################################################################################
 
                                                                         # Motion Detection Handler
 
-                # if current_time - last_motion_check > motion_detection_delay: #only check for motion every few seconds
-                #     last_motion_check = current_time
-                #     pir_motion_sensor = GPIO.input(PIR_PIN)
-                #     cur = camera.picamera.capture_buffer("lores")
-                #     if prev is not None:
-                #         mse = np.square(np.subtract(cur, prev)).mean()
+                if current_time - last_motion_check > motion_detection_delay: #only check for motion every few seconds
+                    last_motion_check = current_time
+                    pir_motion_sensor = GPIO.input(PIR_PIN)
+                    cur = camera.picamera.capture_buffer("lores")
+                    if prev is not None:
+                        mse = np.square(np.subtract(cur, prev)).mean()
                     
-                #     print("PIR: ", pir_motion_sensor)
-                #     print("MSE: ", mse)
+                    print("PIR: ", pir_motion_sensor)
+                    print("MSE: ", mse)
 
-                #     if pir_motion_sensor and mse > 40: #Higher MSE is LESS sensitive
-                #         if camera.email_allowed:
-                #             # Motion is detected and email is allowed
-                #             if last_motion_time is None or (current_time - last_motion_time > 15):
-                #                 send_email("Motion Detected", "Motion has been detected by your camera.", sender_email, receiver_email, app_password)
-                #                 logging.info("Motion detected and email sent.")
-                #                 last_motion_time = current_time  # Update the last motion time
-                #                 camera.email_allowed = False  # Prevent further emails until condition resets
-                #                 camera.start_recording()  # Start recording when motion is detected
-                #             # else:
-                #             #     logging.info("Motion detected but not eligible for email due to cooldown.")
-                #         # else:
-                #         #     logging.info("Motion detected but email not sent due to recent activity.")
-                #         camera.last_motion_detected_time = current_time
-                #     else:
-                #         # No motion detected
-                #         if camera.last_motion_detected_time and (current_time - camera.last_motion_detected_time > 15) and not camera.email_allowed:
-                #             camera.email_allowed = True  # Re-enable sending emails after 15 seconds of no motion
-                #             logging.info("15 seconds of no motion passed, emails re-enabled.")
-                #             camera.last_motion_detected_time = current_time  # Reset to prevent message re-logging.infoing
-                #             camera.stop_recording()  # Stop recording when no motion is detected for 15 seconds
+                    if pir_motion_sensor and mse > 40: #Higher MSE is LESS sensitive
+                        camera.periodically_capture_and_process_frame()
+                    #     if camera.email_allowed:
+                    #         # Motion is detected and email is allowed
+                    #         if last_motion_time is None or (current_time - last_motion_time > 15):
+                    #             send_email("Motion Detected", "Motion has been detected by your camera.", sender_email, receiver_email, app_password)
+                    #             logging.info("Motion detected and email sent.")
+                    #             last_motion_time = current_time  # Update the last motion time
+                    #             camera.email_allowed = False  # Prevent further emails until condition resets
+                    #             camera.start_recording()  # Start recording when motion is detected
+                    #         # else:
+                    #         #     logging.info("Motion detected but not eligible for email due to cooldown.")
+                    #     # else:
+                    #     #     logging.info("Motion detected but email not sent due to recent activity.")
+                    #     camera.last_motion_detected_time = current_time
+                    # else:
+                    #     # No motion detected
+                    #     if camera.last_motion_detected_time and (current_time - camera.last_motion_detected_time > 15) and not camera.email_allowed:
+                    #         camera.email_allowed = True  # Re-enable sending emails after 15 seconds of no motion
+                    #         logging.info("15 seconds of no motion passed, emails re-enabled.")
+                    #         camera.last_motion_detected_time = current_time  # Reset to prevent message re-logging.infoing
+                    #         camera.stop_recording()  # Stop recording when no motion is detected for 15 seconds
 
-                #     prev = cur
+                    prev = cur
 
         except KeyboardInterrupt:
             pass
