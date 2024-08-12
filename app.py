@@ -69,13 +69,13 @@ def get_predictions():
     conn = sqlite3.connect("/root/birdcam/db/bird_predictions.db")
     cursor = conn.cursor()
 
-    # Fetch predictions from the last 20 seconds, only from the most recent INSERT
+    # Fetch predictions from the last 60 seconds, only from the most recent INSERT
     cursor.execute(
         """
         SELECT timestamp, bird_species, confidence 
         FROM predictions 
         WHERE timestamp = (SELECT MAX(timestamp) FROM predictions) 
-        AND timestamp >= datetime('now', '-20 seconds') 
+        AND timestamp >= datetime('now', '-60 seconds') 
         ORDER BY timestamp DESC
     """
     )
