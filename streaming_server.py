@@ -53,8 +53,8 @@ startTime = time.time()
 width_main = 1280
 height_main = 720
 
-width_lores = 640
-height_lores = 360
+width_lores = 800
+height_lores = 450
 
 last_motion_time = None
 
@@ -294,7 +294,7 @@ class Camera:
 
     def capture_image(self):
         request = self.picamera.capture_request()
-        request.save("main", self.current_image_file)
+        request.save("lores", self.current_image_file)
         request.release()
 
 
