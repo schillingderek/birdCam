@@ -16,6 +16,7 @@ from ws4py.server.wsgirefserver import (
 from ws4py.server.wsgiutils import WebSocketWSGIApplication
 from threading import Thread, Condition
 import time
+import pytz
 from datetime import datetime
 import subprocess
 
@@ -226,7 +227,8 @@ class Camera:
             ''')
 
             data_to_insert = []
-            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            utc_now = datetime.now(pytz.utc)
+            timestamp = utc_now.strftime('%Y-%m-%d %H:%M:%S')
             for species, confidence in zip(self.bird_id, self.bird_score):
                 data_to_insert.append((timestamp, species, confidence))
 
