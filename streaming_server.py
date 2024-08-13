@@ -358,7 +358,7 @@ def stream():
                     print("PIR: ", pir_motion_sensor)
                     print("MSE: ", mse)
 
-                    if pir_motion_sensor and mse > 40: #Higher MSE is LESS sensitive
+                    if pir_motion_sensor and mse > 30: #Higher MSE is LESS sensitive
                         camera.periodically_capture_and_process_frame()
                     #     if camera.email_allowed:
                     #         # Motion is detected and email is allowed
