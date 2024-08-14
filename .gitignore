@@ -4,3 +4,4 @@ getDriveCredentials.py
 .env
 **/venv
 .venv
+static/**
