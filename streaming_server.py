@@ -184,7 +184,7 @@ class Camera:
         self.bird_id = []  # Change to a list to hold multiple detections
         self.bird_score = []  # Change to a list to hold multiple detections
         self.last_capture_time = time.time()
-        self.periodic_image_capture_delay = 60
+        self.periodic_image_capture_delay = 15
         self.drive_image_id = None
         self.current_image_file = None
         self.current_video_file = None
@@ -281,6 +281,7 @@ class Camera:
         self.uploadImageFile()
         self.perform_obj_detection_and_inference()
         self.store_inference()
+        self.delete_image()
 
     def uploadImageFile(self):
         logging.info("Uploading file...")
@@ -296,6 +297,10 @@ class Camera:
         request = self.picamera.capture_request()
         request.save("main", self.current_image_file)
         request.release()
+
+    def delete_image(self):
+        if os.path.exists(self.current_image_file):
+            os.remove(self.current_image_file)
 
 
 camera = Camera()
@@ -344,7 +349,7 @@ def stream():
                     print("No frame data received")
 
                 # if camera.is_recording:
-                # camera.periodically_capture_and_process_frame()
+                camera.periodically_capture_and_process_frame()
 
 ##############################################################################################################################################################
 
@@ -360,8 +365,7 @@ def stream():
                     print("PIR: ", pir_motion_sensor)
                     print("MSE: ", mse)
 
-                    if pir_motion_sensor and mse > 30: #Higher MSE is LESS sensitive
-                        camera.periodically_capture_and_process_frame()
+                    # if pir_motion_sensor and mse > 30: #Higher MSE is LESS sensitive
                     #     if camera.email_allowed:
                     #         # Motion is detected and email is allowed
                     #         if last_motion_time is None or (current_time - last_motion_time > 15):
