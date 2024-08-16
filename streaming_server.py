@@ -27,6 +27,7 @@ import RPi.GPIO as GPIO
 
 from pydrive.drive import GoogleDrive
 from pydrive.auth import GoogleAuth
+from google.cloud import storage
 
 import requests
 
@@ -62,9 +63,12 @@ sender_email = "schilling.derek@gmail.com"
 app_password = os.getenv('GOOGLE_APP_PASSWORD')
 receiver_email = "schilling.derek@gmail.com"
 
-gauth = GoogleAuth()
-gauth.LocalWebserverAuth()
-drive = GoogleDrive(gauth)
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+
+
+# gauth = GoogleAuth()
+# gauth.LocalWebserverAuth()
+# drive = GoogleDrive(gauth)
 
 google_drive_folder_id = "1Gut6eCG_p6WmLDRj3w3oHFOiqMHlXkFr"
 
@@ -97,18 +101,19 @@ def convert_h264_to_mp4(source_file_path, output_file_path):
         logging.error(f"Error occurred: {e.stderr.decode()}")
 
 def upload_video(file_path, output_path):
-    try:
-        convert_h264_to_mp4(file_path, output_path)
-        logging.info(f"Conversion successful for {output_path}")
+    return None
+    # try:
+    #     convert_h264_to_mp4(file_path, output_path)
+    #     logging.info(f"Conversion successful for {output_path}")
 
-        logging.info("Uploading file...")
-        f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(output_path))})
-        f.SetContentFile(str(output_path))
-        f.Upload()
-        f = None
-        logging.info("Upload Completed.")
-    except Exception as e:
-        logging.info(f"Failed to upload video: {e}")
+    #     logging.info("Uploading file...")
+    #     f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(output_path))})
+    #     f.SetContentFile(str(output_path))
+    #     f.Upload()
+    #     f = None
+    #     logging.info("Upload Completed.")
+    # except Exception as e:
+    #     logging.info(f"Failed to upload video: {e}")
 
 def start_video_upload(file_path, output_path):
     upload_thread = Thread(target=upload_video, args=(file_path, output_path))
@@ -278,20 +283,28 @@ class Camera:
         timestamp = show_time()
         self.current_image_file = f"{images_dir}/snap_{timestamp}.jpg"
         self.capture_image()
-        self.uploadImageFile()
-        self.perform_obj_detection_and_inference()
-        self.store_inference()
-        self.delete_image()
+        self.upload_image_to_gcs()
+        # self.perform_obj_detection_and_inference()
+        # self.store_inference()
+        # self.delete_image()
+
+    def upload_image_to_gcs(self):
+        logging.info("Uploading to GCS")
+        storage_client = storage.Client()
+        bucket = storage_client.bucket("bird_cam_media")
+        blob = bucket.blob(str(os.path.basename(self.current_image_file)))
+        blob.upload_from_filename(self.current_image_file)
+        logging.info("Upload to GCS finished")
 
     def uploadImageFile(self):
         logging.info("Uploading file...")
-        f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(self.current_image_file))})
-        f.SetContentFile(str(self.current_image_file))
-        f.Upload()
-        self.drive_image_id = f['id']
-        logging.info(self.drive_image_id)
-        f = None
-        logging.info("Upload Completed.")
+        # f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(self.current_image_file))})
+        # f.SetContentFile(str(self.current_image_file))
+        # f.Upload()
+        # self.drive_image_id = f['id']
+        # logging.info(self.drive_image_id)
+        # f = None
+        # logging.info("Upload Completed.")
 
     def capture_image(self):
         request = self.picamera.capture_request()
@@ -301,6 +314,7 @@ class Camera:
     def delete_image(self):
         if os.path.exists(self.current_image_file):
             os.remove(self.current_image_file)
+        print("Deleted image")
 
 
 camera = Camera()
