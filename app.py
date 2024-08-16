@@ -75,7 +75,7 @@ def get_predictions():
         SELECT timestamp, bird_species, confidence 
         FROM predictions 
         WHERE timestamp = (SELECT MAX(timestamp) FROM predictions) 
-        AND timestamp >= datetime('now', '-360 seconds') 
+        AND timestamp >= datetime('now', '-20 seconds') 
         ORDER BY timestamp DESC
     """
     )
