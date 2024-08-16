@@ -290,7 +290,7 @@ class Camera:
 
     def upload_image_to_gcs(self):
         logging.info("Uploading to GCS")
-        storage_client = storage.Client()
+        storage_client = storage.Client(project="birdcam1")
         bucket = storage_client.bucket("bird_cam_media")
         blob = bucket.blob(str(os.path.basename(self.current_image_file)))
         blob.upload_from_filename(self.current_image_file)
