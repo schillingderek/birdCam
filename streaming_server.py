@@ -201,7 +201,7 @@ class Camera:
         logging.info(f"Processing frame at: {self.current_image_file}")
         try:
             url = "https://inferenceserver-ef6censsqa-uc.a.run.app/process_image"
-            data = {'file_id': self.drive_image_id}
+            data = {'file_id': str(os.path.basename(self.current_image_file))}
             response = requests.post(url, json=data)
             logging.info("Frame processed")
             
@@ -284,9 +284,9 @@ class Camera:
         self.current_image_file = f"{images_dir}/snap_{timestamp}.jpg"
         self.capture_image()
         self.upload_image_to_gcs()
-        # self.perform_obj_detection_and_inference()
-        # self.store_inference()
-        # self.delete_image()
+        self.perform_obj_detection_and_inference()
+        self.store_inference()
+        self.delete_image()
 
     def upload_image_to_gcs(self):
         logging.info("Uploading to GCS")
@@ -314,7 +314,7 @@ class Camera:
     def delete_image(self):
         if os.path.exists(self.current_image_file):
             os.remove(self.current_image_file)
-        print("Deleted image")
+        logging.info("Deleted image")
 
 
 camera = Camera()
@@ -376,8 +376,8 @@ def stream():
                     if prev is not None:
                         mse = np.square(np.subtract(cur, prev)).mean()
                     
-                    print("PIR: ", pir_motion_sensor)
-                    print("MSE: ", mse)
+                    logging.info(f"PIR: {pir_motion_sensor}")
+                    logging.info(f"MSE: {mse}")
 
                     # if pir_motion_sensor and mse > 30: #Higher MSE is LESS sensitive
                     #     if camera.email_allowed:

@@ -11,6 +11,8 @@ from dotenv import load_dotenv
 from pydrive.drive import GoogleDrive
 from pydrive.auth import GoogleAuth
 
+from google.cloud import storage
+
 import requests
 
 from requests_toolbelt.multipart import decoder
@@ -29,6 +31,10 @@ class_names = np.load("class_names.npy", allow_pickle=True).tolist()
 # Load the PyTorch model
 model = torch.jit.load("simple_nn.pt")
 model.eval()
+
+# Initialize a Google Cloud Storage client
+storage_client = storage.Client(project='birdcam1')
+bucket_name = 'bird_cam_media'
 
 # Define the image transformation for PyTorch
 preprocess = transforms.Compose([
@@ -91,16 +97,14 @@ def process_image():
     image_id = data.get('file_id')
     print("Image ID: ", image_id)
 
+    # Set the path where the image will be saved locally
     image_path = os.path.join("/app", "downloaded_image.jpg")
 
-    # Initialize Google Drive client inside the route
-    gauth = GoogleAuth()
-    gauth.LocalWebserverAuth()
-    drive = GoogleDrive(gauth)
-
-    driveImage = drive.CreateFile({'id': image_id})
-    driveImage.GetContentFile(image_path)
-
+    # Download the image from Google Cloud Storage
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(image_id)
+    blob.download_to_filename(image_path)
+    
     # Detect birds
     bird_boxes = detect_birds_yolo(image_path)
     if not bird_boxes:
