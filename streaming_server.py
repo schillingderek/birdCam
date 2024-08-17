@@ -354,6 +354,7 @@ def stream():
 
             while True:
                 current_time = time.time()
+                current_hour = datetime.now().hour
                 # Read from the StreamingOutput and broadcast via WebSocket
                 frame_data = camera.stream_out.read()
                 if frame_data:
@@ -362,8 +363,8 @@ def stream():
                 else:
                     print("No frame data received")
 
-                # if camera.is_recording:
-                camera.periodically_capture_and_process_frame()
+                if 7 <= current_hour < 21:
+                    camera.periodically_capture_and_process_frame()
 
 ##############################################################################################################################################################
 
