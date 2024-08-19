@@ -200,7 +200,7 @@ class Camera:
     def perform_obj_detection_and_inference(self):
         logging.info(f"Processing frame at: {self.current_image_file}")
         try:
-            url = "http://10.0.0.194:8080/process_image"
+            url = "https://inferenceserver-ef6censsqa-uc.a.run.app/process_image"
             data = {'file_id': self.drive_image_id}
             response = requests.post(url, json=data)
             logging.info("Frame processed")
