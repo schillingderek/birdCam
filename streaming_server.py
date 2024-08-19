@@ -63,7 +63,7 @@ sender_email = "schilling.derek@gmail.com"
 app_password = os.getenv('GOOGLE_APP_PASSWORD')
 receiver_email = "schilling.derek@gmail.com"
 
-# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
 
 
 gauth = GoogleAuth()
@@ -283,7 +283,7 @@ class Camera:
         timestamp = show_time()
         self.current_image_file = f"{images_dir}/snap_{timestamp}.jpg"
         self.capture_image()
-        self.upload_image_to_google_drive()
+        self.upload_image_to_gcs()
         self.perform_obj_detection_and_inference()
         self.store_inference()
         self.delete_image()
