@@ -32,9 +32,9 @@ class_names = np.load("class_names.npy", allow_pickle=True).tolist()
 model = torch.jit.load("simple_nn.pt")
 model.eval()
 
-# Initialize a Google Cloud Storage client
-storage_client = storage.Client(project='birdcam1')
-bucket_name = 'bird_cam_media'
+# # Initialize a Google Cloud Storage client
+# storage_client = storage.Client(project='birdcam1')
+# bucket_name = 'bird_cam_media'
 
 # Define the image transformation for PyTorch
 preprocess = transforms.Compose([
