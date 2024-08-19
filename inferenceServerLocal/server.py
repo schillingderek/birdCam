@@ -98,7 +98,7 @@ def process_image():
     print("Image ID: ", image_id)
 
     # Set the path where the image will be saved locally
-    image_path = os.path.join("/app", "downloaded_image.jpg")
+    image_path = os.path.join("/root/birdcam/inferenceServerLocal", "downloaded_image.jpg")
 
     # Download the image from Google Cloud Storage
     gauth = GoogleAuth()
@@ -127,3 +127,5 @@ def process_image():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
+
+
