@@ -201,7 +201,7 @@ class Camera:
         logging.info(f"Processing frame at: {self.current_image_file}")
         try:
             url = "https://inferenceserver-ef6censsqa-uc.a.run.app/process_image"
-            data = {'file_id': self.drive_image_id}
+            data = {'file_id': str(os.path.basename(self.current_image_file))}
             response = requests.post(url, json=data)
             logging.info("Frame processed")
             
