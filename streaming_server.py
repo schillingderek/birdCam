@@ -189,7 +189,7 @@ class Camera:
         self.bird_id = []  # Change to a list to hold multiple detections
         self.bird_score = []  # Change to a list to hold multiple detections
         self.last_capture_time = time.time()
-        self.periodic_image_capture_delay = 15
+        self.periodic_image_capture_delay = 20
         self.drive_image_id = None
         self.current_image_file = None
         self.current_video_file = None
