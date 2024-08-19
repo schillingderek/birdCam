@@ -63,12 +63,12 @@ sender_email = "schilling.derek@gmail.com"
 app_password = os.getenv('GOOGLE_APP_PASSWORD')
 receiver_email = "schilling.derek@gmail.com"
 
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
 
 
-# gauth = GoogleAuth()
-# gauth.LocalWebserverAuth()
-# drive = GoogleDrive(gauth)
+gauth = GoogleAuth()
+gauth.LocalWebserverAuth()
+drive = GoogleDrive(gauth)
 
 google_drive_folder_id = "1Gut6eCG_p6WmLDRj3w3oHFOiqMHlXkFr"
 
@@ -189,7 +189,7 @@ class Camera:
         self.bird_id = []  # Change to a list to hold multiple detections
         self.bird_score = []  # Change to a list to hold multiple detections
         self.last_capture_time = time.time()
-        self.periodic_image_capture_delay = 15
+        self.periodic_image_capture_delay = 10
         self.drive_image_id = None
         self.current_image_file = None
         self.current_video_file = None
@@ -200,8 +200,8 @@ class Camera:
     def perform_obj_detection_and_inference(self):
         logging.info(f"Processing frame at: {self.current_image_file}")
         try:
-            url = "https://inferenceserver-ef6censsqa-uc.a.run.app/process_image"
-            data = {'file_id': str(os.path.basename(self.current_image_file))}
+            url = "http://10.0.0.194:8080/process_image"
+            data = {'file_id': self.drive_image_id}
             response = requests.post(url, json=data)
             logging.info("Frame processed")
             
@@ -283,7 +283,7 @@ class Camera:
         timestamp = show_time()
         self.current_image_file = f"{images_dir}/snap_{timestamp}.jpg"
         self.capture_image()
-        self.upload_image_to_gcs()
+        self.upload_image_to_google_drive()
         self.perform_obj_detection_and_inference()
         self.store_inference()
         self.delete_image()
@@ -296,15 +296,15 @@ class Camera:
         blob.upload_from_filename(self.current_image_file)
         logging.info("Upload to GCS finished")
 
-    def uploadImageFile(self):
+    def upload_image_to_google_drive(self):
         logging.info("Uploading file...")
-        # f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(self.current_image_file))})
-        # f.SetContentFile(str(self.current_image_file))
-        # f.Upload()
-        # self.drive_image_id = f['id']
-        # logging.info(self.drive_image_id)
-        # f = None
-        # logging.info("Upload Completed.")
+        f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(self.current_image_file))})
+        f.SetContentFile(str(self.current_image_file))
+        f.Upload()
+        self.drive_image_id = f['id']
+        logging.info(self.drive_image_id)
+        f = None
+        logging.info("Upload Completed.")
 
     def capture_image(self):
         request = self.picamera.capture_request()
