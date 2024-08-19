@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  bird-identifier:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PORT=8080
+    networks:
+      - default
