@@ -25,8 +25,8 @@ from email.mime.text import MIMEText
 
 import RPi.GPIO as GPIO
 
-from pydrive.drive import GoogleDrive
-from pydrive.auth import GoogleAuth
+# from pydrive.drive import GoogleDrive
+# from pydrive.auth import GoogleAuth
 from google.cloud import storage
 
 import requests
@@ -101,19 +101,18 @@ def convert_h264_to_mp4(source_file_path, output_file_path):
         logging.error(f"Error occurred: {e.stderr.decode()}")
 
 def upload_video(file_path, output_path):
-    return None
-    # try:
-    #     convert_h264_to_mp4(file_path, output_path)
-    #     logging.info(f"Conversion successful for {output_path}")
+    try:
+        convert_h264_to_mp4(file_path, output_path)
+        logging.info(f"Conversion successful for {output_path}")
 
-    #     logging.info("Uploading file...")
-    #     f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(output_path))})
-    #     f.SetContentFile(str(output_path))
-    #     f.Upload()
-    #     f = None
-    #     logging.info("Upload Completed.")
-    # except Exception as e:
-    #     logging.info(f"Failed to upload video: {e}")
+        logging.info("Uploading file...")
+        f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(output_path))})
+        f.SetContentFile(str(output_path))
+        f.Upload()
+        f = None
+        logging.info("Upload Completed.")
+    except Exception as e:
+        logging.info(f"Failed to upload video: {e}")
 
 def start_video_upload(file_path, output_path):
     upload_thread = Thread(target=upload_video, args=(file_path, output_path))
@@ -217,7 +216,7 @@ class Camera:
 
     def store_inference(self):
         if len(self.bird_id) > 0:
-            print("storing inference data")
+            logging.info("storing inference data")
             conn = sqlite3.connect('/root/birdcam/db/bird_predictions.db')
             cursor = conn.cursor()
 
@@ -246,7 +245,7 @@ class Camera:
             conn.commit()
             conn.close()
         else:
-            print("no data to store")
+            logging.info("no data to store")
 
     def periodically_capture_and_process_frame(self):
         current_time = time.time()
@@ -266,7 +265,7 @@ class Camera:
             video_capture_output.start()
             self.is_recording = True
             self.start_recording_time = time.time()
-            print("video started at: ", self.start_recording_time)
+            logging.info(f"video started at: {self.start_recording_time}")
 
     def stop_recording(self):
         if self.is_recording:
@@ -312,23 +311,24 @@ class Camera:
         request.release()
 
     def delete_image(self):
-        if os.path.exists(self.current_image_file):
-            os.remove(self.current_image_file)
-        logging.info("Deleted image")
+        # Only delete image if there was no bird found
+        if len(self.bird_id) == 0:
+            if os.path.exists(self.current_image_file):
+                os.remove(self.current_image_file)
+            logging.info("Deleted image")
+        else:
+            logging.info("Keeping image - found birds!")
 
 
 camera = Camera()
 
 
-
-
-
 def stream():
-    global last_motion_time
-    prev = None
-    mse = 0
-    motion_detection_delay = 5
-    last_motion_check = time.time()
+    # global last_motion_time
+    # prev = None
+    # mse = 0
+    # motion_detection_delay = 5
+    # last_motion_check = time.time()
 
     camera.picamera.start_encoder(
         camera.streaming_encoder, camera.streaming_output, name="lores"
@@ -358,10 +358,8 @@ def stream():
                 # Read from the StreamingOutput and broadcast via WebSocket
                 frame_data = camera.stream_out.read()
                 if frame_data:
-                    # print("Sending frame of size:", len(frame_data))
                     websocketd.manager.broadcast(frame_data, binary=True)
-                else:
-                    print("No frame data received")
+
 
                 if 7 <= current_hour < 21:
                     camera.periodically_capture_and_process_frame()
