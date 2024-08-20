@@ -285,7 +285,7 @@ class Camera:
         self.upload_image_to_gcs()
         self.perform_obj_detection_and_inference()
         self.store_inference()
-        self.delete_image()
+        self.delete_or_rename_image()
 
     def upload_image_to_gcs(self):
         logging.info("Uploading to GCS")
@@ -310,14 +310,21 @@ class Camera:
         request.save("main", self.current_image_file)
         request.release()
 
-    def delete_image(self):
-        # Only delete image if there was no bird found
+    def delete_or_rename_image(self):
         if len(self.bird_id) == 0:
             if os.path.exists(self.current_image_file):
                 os.remove(self.current_image_file)
             logging.info("Deleted image")
         else:
-            logging.info("Keeping image - found birds!")
+            # Generate the new filename
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            bird_names = "_".join(self.bird_id)
+            new_filename = f"{timestamp}_{bird_names}.jpg"
+
+            # Rename the file
+            new_filepath = os.path.join(os.path.dirname(self.current_image_file), new_filename)
+            os.rename(self.current_image_file, new_filepath)
+            logging.info(f"Renamed image to {new_filename}")
 
 
 camera = Camera()
