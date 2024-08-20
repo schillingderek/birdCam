@@ -96,23 +96,24 @@ def convert_h264_to_mp4(source_file_path, output_file_path):
             )
             .run(cmd=ffmpeg_path)
         )
-        logging.info(f"Conversion successful: {output_file_path}")
+        logging.info("Conversion successful: %s", output_file_path)
     except ffmpeg.Error as e:
-        logging.error(f"Error occurred: {e.stderr.decode()}")
+        logging.error("Error occurred: %s", e.stderr.decode())
 
 def upload_video(file_path, output_path):
-    try:
-        convert_h264_to_mp4(file_path, output_path)
-        logging.info(f"Conversion successful for {output_path}")
+    return None
+    # try:
+    #     convert_h264_to_mp4(file_path, output_path)
+    #     logging.info("Conversion successful for %s", output_path)
 
-        logging.info("Uploading file...")
-        f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(output_path))})
-        f.SetContentFile(str(output_path))
-        f.Upload()
-        f = None
-        logging.info("Upload Completed.")
-    except Exception as e:
-        logging.info(f"Failed to upload video: {e}")
+    #     logging.info("Uploading file...")
+    #     f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(output_path))})
+    #     f.SetContentFile(str(output_path))
+    #     f.Upload()
+    #     f = None
+    #     logging.info("Upload Completed.")
+    # except Exception as e:
+    #     logging.info(f"Failed to upload video: {e}")
 
 def start_video_upload(file_path, output_path):
     upload_thread = Thread(target=upload_video, args=(file_path, output_path))
@@ -134,7 +135,7 @@ def send_email(subject, body, sender, receiver, password):
                 server.send_message(msg)
             logging.info("Email sent successfully!")
         except Exception as e:
-            logging.info(f"Failed to send email: {e}")
+            logging.info("Failed to send email: %s", e)
     thread = Thread(target=email_thread)
     thread.start()
 
@@ -317,14 +318,14 @@ class Camera:
             logging.info("Deleted image")
         else:
             # Generate the new filename
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = show_time()
             bird_names = "_".join(self.bird_id)
             new_filename = f"{timestamp}_{bird_names}.jpg"
 
             # Rename the file
             new_filepath = os.path.join(os.path.dirname(self.current_image_file), new_filename)
             os.rename(self.current_image_file, new_filepath)
-            logging.info(f"Renamed image to {new_filename}")
+            logging.info("Renamed image to %s", new_filename)
 
 
 camera = Camera()
