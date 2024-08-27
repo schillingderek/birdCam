@@ -386,8 +386,9 @@ def stream():
                 
                 # logging.info(f"PIR: {pir_motion_sensor}")
                 # logging.info(f"MSE: {mse}")
+                relevant_birds = [bird for bird in camera.bird_id if "wren" not in bird.lower()]
 
-                if len(camera.bird_id) > 0: #If the camera has detected birds in the most recent check
+                if len(relevant_birds > 0): #If the camera has detected non "wren" birds in the most recent check
                     if camera.email_allowed:
                         # Motion is detected and email is allowed
                         if last_motion_time is None or (current_time - last_motion_time > motion_detection_delay):
