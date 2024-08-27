@@ -58,6 +58,7 @@ width_lores = 720
 height_lores = 405
 
 last_motion_time = None
+motion_detection_delay = 30
 
 sender_email = "schilling.derek@gmail.com"
 app_password = os.getenv('GOOGLE_APP_PASSWORD')
@@ -117,7 +118,7 @@ def upload_video(file_path, output_path):
 
 def start_video_upload(file_path, output_path):
     upload_thread = Thread(target=upload_video, args=(file_path, output_path))
-    upload_thread.start()        
+    upload_thread.start()     
 
 def show_time():
     """Return current time formatted for file names."""
@@ -198,7 +199,7 @@ class Camera:
         self.picamera.start()
 
     def perform_obj_detection_and_inference(self):
-        logging.info(f"Processing frame at: {self.current_image_file}")
+        logging.info("Processing frame at: %s", self.current_image_file)
         try:
             url = "https://inferenceserver-ef6censsqa-uc.a.run.app/process_image"
             data = {'file_id': str(os.path.basename(self.current_image_file))}
@@ -210,10 +211,10 @@ class Camera:
                 self.bird_id, self.bird_score = zip(*bird_results) if bird_results else ([], [])
                 logging.info(bird_results)
             else:
-                logging.info(f"Error in response from server: {response.status_code}")
+                logging.info("Error in response from server: %s", response.status_code)
             
         except Exception as e:
-            logging.info(f"Error sending image to server: {e}")
+            logging.info("Error sending image to server: %s", e)
 
     def store_inference(self):
         if len(self.bird_id) > 0:
@@ -266,7 +267,7 @@ class Camera:
             video_capture_output.start()
             self.is_recording = True
             self.start_recording_time = time.time()
-            logging.info(f"video started at: {self.start_recording_time}")
+            logging.info("video started at: %s", self.start_recording_time)
 
     def stop_recording(self):
         if self.is_recording:
@@ -298,13 +299,13 @@ class Camera:
 
     def upload_image_to_google_drive(self):
         logging.info("Uploading file...")
-        f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(self.current_image_file))})
-        f.SetContentFile(str(self.current_image_file))
-        f.Upload()
-        self.drive_image_id = f['id']
-        logging.info(self.drive_image_id)
-        f = None
-        logging.info("Upload Completed.")
+        # f = drive.CreateFile({'parents': [{'id': google_drive_folder_id}], "title": str(os.path.basename(self.current_image_file))})
+        # f.SetContentFile(str(self.current_image_file))
+        # f.Upload()
+        # self.drive_image_id = f['id']
+        # logging.info(self.drive_image_id)
+        # f = None
+        # logging.info("Upload Completed.")
 
     def capture_image(self):
         request = self.picamera.capture_request()
@@ -332,7 +333,7 @@ camera = Camera()
 
 
 def stream():
-    # global last_motion_time
+    global last_motion_time
     # prev = None
     # mse = 0
     # motion_detection_delay = 5
@@ -376,39 +377,39 @@ def stream():
 
                                                                         # Motion Detection Handler
 
-                # if current_time - last_motion_check > motion_detection_delay: #only check for motion every few seconds
-                #     last_motion_check = current_time
-                #     pir_motion_sensor = GPIO.input(PIR_PIN)
-                #     cur = camera.picamera.capture_buffer("lores")
-                #     if prev is not None:
-                #         mse = np.square(np.subtract(cur, prev)).mean()
-                    
-                #     logging.info(f"PIR: {pir_motion_sensor}")
-                #     logging.info(f"MSE: {mse}")
+                # pir_motion_sensor = GPIO.input(PIR_PIN)
+                # cur = camera.picamera.capture_buffer("lores")
+                # if prev is not None:
+                #     mse = np.square(np.subtract(cur, prev)).mean()
+                
+                # logging.info(f"PIR: {pir_motion_sensor}")
+                # logging.info(f"MSE: {mse}")
 
-                    # if pir_motion_sensor and mse > 30: #Higher MSE is LESS sensitive
-                    #     if camera.email_allowed:
-                    #         # Motion is detected and email is allowed
-                    #         if last_motion_time is None or (current_time - last_motion_time > 15):
-                    #             send_email("Motion Detected", "Motion has been detected by your camera.", sender_email, receiver_email, app_password)
-                    #             logging.info("Motion detected and email sent.")
-                    #             last_motion_time = current_time  # Update the last motion time
-                    #             camera.email_allowed = False  # Prevent further emails until condition resets
-                    #             camera.start_recording()  # Start recording when motion is detected
-                    #         # else:
-                    #         #     logging.info("Motion detected but not eligible for email due to cooldown.")
-                    #     # else:
-                    #     #     logging.info("Motion detected but email not sent due to recent activity.")
-                    #     camera.last_motion_detected_time = current_time
+                if len(camera.bird_id) > 0: #If the camera has detected birds in the most recent check
+                    if camera.email_allowed:
+                        # Motion is detected and email is allowed
+                        if last_motion_time is None or (current_time - last_motion_time > motion_detection_delay):
+                            bird_list = '\n'.join(camera.bird_id)
+                            email_body = f"Birds have been detected at the Birdy Camera.\n\nDetected bird types:\n{bird_list}"
+                            send_email("Birdy Detected!!", email_body, sender_email, receiver_email, app_password)
+                            logging.info("Motion detected and email sent.")
+                            last_motion_time = current_time  # Update the last motion time
+                            camera.email_allowed = False  # Prevent further emails until condition resets
+                            camera.start_recording()  # Start recording when motion is detected
+                        # else:
+                        #     logging.info("Motion detected but not eligible for email due to cooldown.")
                     # else:
-                    #     # No motion detected
-                    #     if camera.last_motion_detected_time and (current_time - camera.last_motion_detected_time > 15) and not camera.email_allowed:
-                    #         camera.email_allowed = True  # Re-enable sending emails after 15 seconds of no motion
-                    #         logging.info("15 seconds of no motion passed, emails re-enabled.")
-                    #         camera.last_motion_detected_time = current_time  # Reset to prevent message re-logging.infoing
-                    #         camera.stop_recording()  # Stop recording when no motion is detected for 15 seconds
+                    #     logging.info("Motion detected but email not sent due to recent activity.")
+                    camera.last_motion_detected_time = current_time
+                else:
+                    # No motion detected
+                    if camera.last_motion_detected_time and (current_time - camera.last_motion_detected_time > motion_detection_delay) and not camera.email_allowed:
+                        camera.email_allowed = True  # Re-enable sending emails after enough time of no motion
+                        logging.info("%s seconds of no motion passed, emails re-enabled.", motion_detection_delay)
+                        camera.last_motion_detected_time = current_time  # Reset to prevent message re-logging.infoing
+                        camera.stop_recording()  # Stop recording when no motion is detected for $motion_detection_delay seconds
 
-                    # prev = cur
+
 
         except KeyboardInterrupt:
             pass
