@@ -5,3 +5,4 @@ getDriveCredentials.py
 **/venv
 .venv
 static/**
+training_images/
