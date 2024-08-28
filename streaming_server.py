@@ -374,6 +374,8 @@ def stream():
 
                 if 7 <= current_hour < 21:
                     camera.periodically_capture_and_process_frame()
+                else:
+                    camera.bird_id = []
 
 ##############################################################################################################################################################
 
@@ -386,31 +388,31 @@ def stream():
                 
                 # logging.info(f"PIR: {pir_motion_sensor}")
                 # logging.info(f"MSE: {mse}")
-                relevant_birds = [bird for bird in camera.bird_id if "wren" not in bird.lower()]
+                # relevant_birds = [bird for bird in camera.bird_id if "wren" not in bird.lower()]
 
-                if len(relevant_birds > 0): #If the camera has detected non "wren" birds in the most recent check
-                    if camera.email_allowed:
-                        # Motion is detected and email is allowed
-                        if last_motion_time is None or (current_time - last_motion_time > motion_detection_delay):
-                            bird_list = '\n'.join(camera.bird_id)
-                            email_body = f"Birds have been detected at the Birdy Camera.\n\nDetected bird types:\n{bird_list}"
-                            send_email("Birdy Detected!!", email_body, sender_email, receiver_email, app_password)
-                            logging.info("Motion detected and email sent.")
-                            last_motion_time = current_time  # Update the last motion time
-                            camera.email_allowed = False  # Prevent further emails until condition resets
-                            camera.start_recording()  # Start recording when motion is detected
-                        # else:
-                        #     logging.info("Motion detected but not eligible for email due to cooldown.")
-                    # else:
-                    #     logging.info("Motion detected but email not sent due to recent activity.")
-                    camera.last_motion_detected_time = current_time
-                else:
-                    # No motion detected
-                    if camera.last_motion_detected_time and (current_time - camera.last_motion_detected_time > motion_detection_delay) and not camera.email_allowed:
-                        camera.email_allowed = True  # Re-enable sending emails after enough time of no motion
-                        logging.info("%s seconds of no motion passed, emails re-enabled.", motion_detection_delay)
-                        camera.last_motion_detected_time = current_time  # Reset to prevent message re-logging.infoing
-                        camera.stop_recording()  # Stop recording when no motion is detected for $motion_detection_delay seconds
+                # if len(relevant_birds > 0): #If the camera has detected non "wren" birds in the most recent check
+                #     if camera.email_allowed:
+                #         # Motion is detected and email is allowed
+                #         if last_motion_time is None or (current_time - last_motion_time > motion_detection_delay):
+                #             bird_list = '\n'.join(camera.bird_id)
+                #             email_body = f"Birds have been detected at the Birdy Camera.\n\nDetected bird types:\n{bird_list}"
+                #             send_email("Birdy Detected!!", email_body, sender_email, receiver_email, app_password)
+                #             logging.info("Motion detected and email sent.")
+                #             last_motion_time = current_time  # Update the last motion time
+                #             camera.email_allowed = False  # Prevent further emails until condition resets
+                #             camera.start_recording()  # Start recording when motion is detected
+                #         # else:
+                #         #     logging.info("Motion detected but not eligible for email due to cooldown.")
+                #     # else:
+                #     #     logging.info("Motion detected but email not sent due to recent activity.")
+                #     camera.last_motion_detected_time = current_time
+                # else:
+                #     # No motion detected
+                #     if camera.last_motion_detected_time and (current_time - camera.last_motion_detected_time > motion_detection_delay) and not camera.email_allowed:
+                #         camera.email_allowed = True  # Re-enable sending emails after enough time of no motion
+                #         logging.info("%s seconds of no motion passed, emails re-enabled.", motion_detection_delay)
+                #         camera.last_motion_detected_time = current_time  # Reset to prevent message re-logging.infoing
+                #         camera.stop_recording()  # Stop recording when no motion is detected for $motion_detection_delay seconds
 
 
 
