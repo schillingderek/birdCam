@@ -112,6 +112,16 @@
         <div class="row">
             <div class="col-md-12">
                 <a href="/home" class="btn btn-primary" style="margin-bottom: 20px;">Home</a>
+                
+                <!-- Filter Section -->
+                <div class="content-container">
+                    <h1>Filter by Bird Name</h1>
+                    <select id="bird-filter" multiple class="form-control">
+                        <!-- Options will be dynamically populated -->
+                    </select>
+                    <button onclick="filterFiles()" class="btn btn-primary" style="margin-top: 10px;">Apply Filter</button>
+                </div>
+                
                 <div class="content-container">
                     <h1>Pictures</h1>
                     <div id="images"></div>
@@ -133,61 +143,81 @@
     </div>
 
     <script>
+        // Populate the bird filter with bird names
+        function populateBirdFilter(birdNames) {
+            const filterElement = document.getElementById('bird-filter');
+            filterElement.innerHTML = ''; // Clear previous options
+
+            birdNames.forEach(birdName => {
+                const option = document.createElement('option');
+                option.value = birdName;
+                option.textContent = birdName;
+                filterElement.appendChild(option);
+            });
+        }
+
+        // Fetch and display images and videos, applying filter if selected
         function fetchFiles() {
             fetch('/api/files')
             .then(response => response.json())
             .then(data => {
                 const imagesContainer = document.getElementById('images');
                 const videosContainer = document.getElementById('videos');
+                const selectedBirds = Array.from(document.getElementById('bird-filter').selectedOptions).map(option => option.value);
 
                 imagesContainer.innerHTML = '';
                 videosContainer.innerHTML = '';
 
                 data.images.forEach(image => {
-                    const container = document.createElement('div');
-                    container.className = 'file-container';
+                    if (selectedBirds.length === 0 || selectedBirds.some(bird => image.toLowerCase().includes(bird.toLowerCase()))) {
+                        const container = document.createElement('div');
+                        container.className = 'file-container';
 
-                    const imgElement = document.createElement('img');
-                    imgElement.src = `/static/images/${image}`;
-                    imgElement.alt = image;
-                    imgElement.className = 'media-file'; // Class for consistent styling
-                    imgElement.onclick = () => showModal(`/static/images/${image}`, 'image', image);
+                        const imgElement = document.createElement('img');
+                        imgElement.src = `/static/images/${image}`;
+                        imgElement.alt = image;
+                        imgElement.className = 'media-file';
+                        imgElement.onclick = () => showModal(`/static/images/${image}`, 'image', image);
 
-                    const nameElement = document.createElement('div');
-                    nameElement.textContent = image;
-                    nameElement.className = 'file-name';
+                        const nameElement = document.createElement('div');
+                        nameElement.textContent = image;
+                        nameElement.className = 'file-name';
 
-                    container.appendChild(imgElement);
-                    container.appendChild(nameElement);
-                    imagesContainer.appendChild(container);
+                        container.appendChild(imgElement);
+                        container.appendChild(nameElement);
+                        imagesContainer.appendChild(container);
+                    }
                 });
 
                 data.videos.forEach(video => {
-                    const container = document.createElement('div');
-                    container.className = 'file-container';
+                    if (selectedBirds.length === 0 || selectedBirds.some(bird => video.toLowerCase().includes(bird.toLowerCase()))) {
+                        const container = document.createElement('div');
+                        container.className = 'file-container';
 
-                    const videoElement = document.createElement('video');
-                    videoElement.className = 'media-file'; // Class for consistent styling
-                    videoElement.controls = true;
-                    videoElement.onclick = () => showModal(`/static/videos/${video}`, 'video', video);
+                        const videoElement = document.createElement('video');
+                        videoElement.className = 'media-file';
+                        videoElement.controls = true;
+                        videoElement.onclick = () => showModal(`/static/videos/${video}`, 'video', video);
 
-                    const sourceElement = document.createElement('source');
-                    sourceElement.src = `/static/videos/${video}`;
-                    sourceElement.type = 'video/mp4';
-                    videoElement.appendChild(sourceElement);
+                        const sourceElement = document.createElement('source');
+                        sourceElement.src = `/static/videos/${video}`;
+                        sourceElement.type = 'video/mp4';
+                        videoElement.appendChild(sourceElement);
 
-                    const nameElement = document.createElement('div');
-                    nameElement.textContent = video;
-                    nameElement.className = 'file-name';
+                        const nameElement = document.createElement('div');
+                        nameElement.textContent = video;
+                        nameElement.className = 'file-name';
 
-                    container.appendChild(videoElement);
-                    container.appendChild(nameElement);
-                    videosContainer.appendChild(container);
+                        container.appendChild(videoElement);
+                        container.appendChild(nameElement);
+                        videosContainer.appendChild(container);
+                    }
                 });
             })
             .catch(error => console.error('Error loading files:', error));
         }
 
+        // Show modal with the selected image or video
         function showModal(fileUrl, type, fileName) {
             const modal = document.getElementById('myModal');
             const modalContent = document.getElementById('modal-content');
@@ -219,50 +249,62 @@
 
             const downloadLink = document.createElement('a');
             downloadLink.href = fileUrl;
-            downloadLink.download = fileName;
             downloadLink.textContent = 'Download';
             downloadLink.className = 'download-link';
+            downloadLink.download = fileName;
             buttonsContainer.appendChild(downloadLink);
 
             const deleteButton = document.createElement('button');
             deleteButton.textContent = 'Delete';
             deleteButton.className = 'delete-button';
-            deleteButton.onclick = () => {
-                if (confirm('Are you sure you want to delete this file?')) {
-                    deleteFile(fileName); // Already includes confirmation
-                    closeModal();
-                }
-            };
+            deleteButton.onclick = () => deleteFile(fileName); // Use the simplified deleteFile function
             buttonsContainer.appendChild(deleteButton);
 
             modalContent.appendChild(buttonsContainer);
-            modal.classList.add('show');
-            modalContent.classList.add('show');
+
+            modal.style.display = 'block';
+            setTimeout(() => {
+                modal.classList.add('show');
+                modalContent.classList.add('show');
+            }, 10);
         }
 
-        function deleteFile(filename) {
-            fetch(`/delete-file/${filename}`, { method: 'DELETE' })
-            .then(response => {
-                if (response.ok) {
-                    alert('File deleted successfully');
-                    fetchFiles(); // Refresh the list of files
-                } else {
-                    alert('Failed to delete the file');
-                }
-            })
-            .catch(error => console.error('Error deleting file:', error));
-        }
-
+        // Close the modal
         function closeModal() {
             const modal = document.getElementById('myModal');
-            modal.classList.remove('show');
             const modalContent = document.getElementById('modal-content');
+
+            modal.classList.remove('show');
             modalContent.classList.remove('show');
-            setTimeout(() => modal.style.display = "none", 400); // Ensure transition is visible
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 400);
         }
 
+        // Delete file
+        function deleteFile(fileName) {
+            fetch(`/delete-file/${fileName}`, { method: 'DELETE' })
+                .then(response => {
+                    if (response.ok) {
+                        alert('File deleted successfully');
+                        fetchFiles(); // Refresh file list after deletion
+                    } else {
+                        alert('Failed to delete the file');
+                    }
+                })
+                .catch(error => console.error('Error deleting file:', error));
+        }
+
+        // Filter files based on selected bird names
+        function filterFiles() {
+            fetchFiles(); // Re-fetch and filter files
+        }
+
+        // Initial population of bird filter options (call with actual bird names)
+        populateBirdFilter(['American Goldfinch', 'American Robin', 'Barn Swallow', 'Black-Capped Chickadee', 'Blue Jay', 'Cedar Waxwing', 'Common Starling', 'Downy Woodpecker', 'House Finch', 'House Sparrow', 'Mourning Dove', 'Northern Cardinal', 'Red Headed Woodpecker', 'Red Winged Blackbird', 'Tree Swallow']); // Replace with your actual bird names
+
+        // Fetch files when the page loads
         document.addEventListener('DOMContentLoaded', fetchFiles);
     </script>
 </body>
 </html>
-
