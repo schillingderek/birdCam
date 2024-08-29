@@ -322,7 +322,7 @@ class Camera:
         else:
             # Generate the new filename
             timestamp = show_time()
-            bird_names = "_".join(self.bird_id)
+            bird_names = "_".join(sorted(set(self.bird_id)))
             new_filename = f"{timestamp}_{bird_names}.jpg"
 
             # Rename the file
