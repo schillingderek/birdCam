@@ -51,8 +51,8 @@ video_capture_output = CircularOutput()
 
 startTime = time.time()
 
-width_main = 1706
-height_main = 960
+width_main = 1600
+height_main = 900
 
 width_lores = 720
 height_lores = 405
