@@ -47,7 +47,7 @@ load_dotenv()
 
 video_capture_endoder = H264Encoder()
 video_capture_endoder.bitrate = 10000000
-video_capture_output = CircularOutput(buffersize = 15)
+video_capture_output = CircularOutput()
 
 startTime = time.time()
 
@@ -204,8 +204,10 @@ class Camera:
         logging.info("Processing frame at: %s", self.current_image_file)
         try:
             url = "https://inferenceserver-ef6censsqa-uc.a.run.app/process_image"
-            data = {'file_id': str(os.path.basename(self.current_image_file))}
-            response = requests.post(url, json=data)
+            with open(self.current_image_file, 'rb') as img_file:
+                files = {'image': img_file}
+                response = requests.post(url, files=files)
+            
             logging.info("Frame processed")
             
             if response.status_code == 200:

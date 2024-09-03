@@ -6,17 +6,7 @@ import torch
 from torchvision import transforms
 from ultralytics import YOLO
 from flask_cors import CORS
-from dotenv import load_dotenv
-
-from pydrive.drive import GoogleDrive
-from pydrive.auth import GoogleAuth
-
-from google.cloud import storage
-
-import requests
-
-from requests_toolbelt.multipart import decoder
-from werkzeug.utils import secure_filename
+from io import BytesIO
 
 load_dotenv()
 
@@ -31,10 +21,6 @@ class_names = np.load("class_names.npy", allow_pickle=True).tolist()
 # Load the PyTorch model
 model = torch.jit.load("simple_nn.pt")
 model.eval()
-
-# # Initialize a Google Cloud Storage client
-# storage_client = storage.Client(project='birdcam1')
-# bucket_name = 'bird_cam_media'
 
 # Define the image transformation for PyTorch
 preprocess = transforms.Compose([
@@ -57,27 +43,24 @@ def perform_inference(input_image):
 
 # Post-process output
 def post_process_output(output):
-    # Get the index of the top prediction
     _, predicted = torch.max(output, 1)
     predicted_idx = predicted.item()
     
-    # Get the top label and score
     top_label = class_names[predicted_idx]
     top_score = torch.softmax(output, dim=1)[0, predicted_idx].item()  # Get the score for the top class
 
     return top_label, top_score
 
 # Detect birds using YOLOv8
-def detect_birds_yolo(image_path):
+def detect_birds_yolo(image):
     detection_model = YOLO("yolov8s.pt")
-    im1 = Image.open(image_path)
-    results = detection_model.predict(source=im1, save=False)
+    results = detection_model.predict(source=image, save=False)
     
     bird_boxes = []
     for result in results:
         boxes = result.boxes
         for box in boxes:
-            if box.cls == 14:  #Number of the bird class
+            if box.cls == 14:  # Number of the bird class
                 bird_boxes.append(box)
     
     return bird_boxes
@@ -93,27 +76,18 @@ def crop_sub_images(image, boxes):
 
 @app.route('/process_image', methods=['POST'])
 def process_image():
-    data = request.get_json()
-    image_id = data.get('file_id')
-    print("Image ID: ", image_id)
+    # Retrieve the image file from the request
+    if 'image' not in request.files:
+        return jsonify({"error": "No image file provided"}), 400
 
-    # Set the path where the image will be saved locally
-    image_path = os.path.join("/root/birdcam/inferenceServerLocal", "downloaded_image.jpg")
+    image_file = request.files['image']
+    image = Image.open(BytesIO(image_file.read()))
 
-    # Download the image from Google Cloud Storage
-    gauth = GoogleAuth()
-    gauth.LocalWebserverAuth()
-    drive = GoogleDrive(gauth)
-
-    driveImage = drive.CreateFile({'id': image_id})
-    driveImage.GetContentFile(image_path)
-    
     # Detect birds
-    bird_boxes = detect_birds_yolo(image_path)
+    bird_boxes = detect_birds_yolo(image)
     if not bird_boxes:
         return jsonify([])  # Return an empty list if no birds are detected
 
-    image = Image.open(image_path)
     cropped_images = crop_sub_images(image, bird_boxes)
 
     results = []
@@ -124,8 +98,5 @@ def process_image():
         results.append((label, score))
     return jsonify(results)
 
-
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
-
-
