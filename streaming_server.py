@@ -3,8 +3,9 @@
 import io
 import picamera2
 from picamera2 import Picamera2
-from picamera2.encoders import H264Encoder
+from picamera2.encoders import H264Encoder, MJPEGEncoder
 from picamera2.outputs import FileOutput, CircularOutput
+import libcamera
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from wsgiref.simple_server import make_server
 from ws4py.websocket import WebSocket
@@ -47,12 +48,12 @@ load_dotenv()
 
 video_capture_endoder = H264Encoder()
 video_capture_endoder.bitrate = 10000000
-video_capture_output = CircularOutput(buffersize = 15)
+video_capture_output = CircularOutput(buffersize = 1)
 
 startTime = time.time()
 
-width_main = 1280
-height_main = 720
+width_main = 1920
+height_main = 1080
 
 width_lores = 720
 height_lores = 405
@@ -66,22 +67,49 @@ receiver_email = "schilling.derek@gmail.com"
 
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
 
-
-# gauth = GoogleAuth()
-# gauth.LocalWebserverAuth()
-# drive = GoogleDrive(gauth)
-
 google_drive_folder_id = "1Gut6eCG_p6WmLDRj3w3oHFOiqMHlXkFr"
 
-PIR_PIN = 4
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(PIR_PIN, GPIO.IN)
-
-base_dir = "/root/birdcam"
+base_dir = "/home/birdcam/birdCam"
 video_dir = base_dir + "/static/videos/"
 images_dir = base_dir + "/static/images"
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Setup pins
+DIR_PIN1 = 17  # GPIO pin for motor direction (e.g., GPIO 17)
+DIR_PIN2 = 27  # GPIO pin for motor direction (e.g., GPIO 27)
+PWM_PIN = 18   # GPIO pin for PWM (e.g., GPIO 18)
+
+# Initialize GPIO settings
+GPIO.setmode(GPIO.BCM)  # Use BCM pin numbering
+GPIO.setup(DIR_PIN1, GPIO.OUT)
+GPIO.setup(DIR_PIN2, GPIO.OUT)
+GPIO.setup(PWM_PIN, GPIO.OUT)
+
+# Setup PWM
+pwm = GPIO.PWM(PWM_PIN, 1000)  # Set PWM frequency to 1000 Hz
+pwm.start(0)  # Start PWM with 0% duty cycle (motor off)
+
+def get_cpu_temperature():
+    try:
+        with open("/sys/class/thermal/thermal_zone0/temp", "r") as file:
+            temp = file.read().strip()
+        return int(temp) / 1000.0
+    except Exception as e:
+        print(f"Error reading temperature: {e}")
+        return None
+
+def set_motor_speed_and_direction(speed, direction):
+    if direction == "forward":
+        GPIO.output(DIR_PIN1, GPIO.HIGH)
+        GPIO.output(DIR_PIN2, GPIO.LOW)
+    elif direction == "backward":
+        GPIO.output(DIR_PIN1, GPIO.LOW)
+        GPIO.output(DIR_PIN2, GPIO.HIGH)
+    
+    # Set speed using PWM (0 to 100)
+    print(f"setting speed to: {speed}")
+    pwm.ChangeDutyCycle(speed)
 
 def convert_h264_to_mp4(source_file_path, output_file_path):
     try:
@@ -142,19 +170,6 @@ def send_email(subject, body, sender, receiver, password):
     thread = Thread(target=email_thread)
     thread.start()
 
-def get_video_duration(video_file):
-    """Get the duration of the video in seconds using ffprobe."""
-    command = [
-        "ffprobe",
-        "-v", "error",
-        "-show_entries", "format=duration",
-        "-of", "default=noprint_wrappers=1:nokey=1",
-        video_file
-    ]
-    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    return float(result.stdout.strip())
-
-
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
         self.frame = None
@@ -177,6 +192,7 @@ class Camera:
         self.video_config = self.picamera.create_video_configuration(
             {"size": (width_main, height_main), "format": "RGB888"}, lores={"size": (width_lores, height_lores)}
         )
+        self.video_config["transform"] = libcamera.Transform(hflip=1, vflip=1)
         self.picamera.configure(self.video_config)
         self.streaming_encoder = H264Encoder()
         self.streaming_encoder.bitrate = 2500000
@@ -192,7 +208,7 @@ class Camera:
         self.bird_id = []  # Change to a list to hold multiple detections
         self.bird_score = []  # Change to a list to hold multiple detections
         self.last_capture_time = time.time()
-        self.periodic_image_capture_delay = 20
+        self.periodic_image_capture_delay = 16
         self.drive_image_id = None
         self.current_image_file = None
         self.current_video_file = None
@@ -221,7 +237,7 @@ class Camera:
     def store_inference(self):
         if len(self.bird_id) > 0:
             logging.info("storing inference data")
-            conn = sqlite3.connect('/root/birdcam/db/bird_predictions.db')
+            conn = sqlite3.connect('/home/birdcam/birdCam/db/bird_predictions.db')
             cursor = conn.cursor()
 
             # Create table if it doesn't exist
@@ -255,6 +271,10 @@ class Camera:
         current_time = time.time()
         if current_time - self.last_capture_time > self.periodic_image_capture_delay:
             self.last_capture_time = current_time
+            logging.info("Capturing frame from video stream")
+            timestamp = show_time()
+            self.current_image_file = f"{images_dir}/snap_{timestamp}.jpg"
+            self.capture_image()
             capture_process_frame_thread = Thread(target=self.capture_and_process_frame)
             capture_process_frame_thread.start()
             
@@ -282,10 +302,6 @@ class Camera:
             self.is_recording = False
 
     def capture_and_process_frame(self):
-        logging.info("Capturing frame from video stream")
-        timestamp = show_time()
-        self.current_image_file = f"{images_dir}/snap_{timestamp}.jpg"
-        self.capture_image()
         self.upload_image_to_gcs()
         self.perform_obj_detection_and_inference()
         self.store_inference()
@@ -336,6 +352,8 @@ camera = Camera()
 
 def stream():
     global last_motion_time
+    last_temp_check = time.time()
+    fanOn = False
     # prev = None
     # mse = 0
     # motion_detection_delay = 5
@@ -348,6 +366,7 @@ def stream():
         video_capture_endoder, video_capture_output, name="main"
     )
 
+    print(camera.picamera.camera_configuration())
     try:
         WebSocketWSGIHandler.http_version = "1.1"
         websocketd = make_server(
@@ -364,12 +383,27 @@ def stream():
             websocketd_thread.start()
 
             while True:
+
                 current_time = time.time()
                 current_hour = datetime.now().hour
+                if (current_time - last_temp_check >= 5):
+                    cpu_temp = get_cpu_temperature()
+                    print(cpu_temp)
+                    print(fanOn)
+                    last_temp_check = current_time
+                    if cpu_temp is not None:
+                        if cpu_temp > 55:
+                            set_motor_speed_and_direction(100, "backward")
+                            fanOn = True
+                        elif fanOn and cpu_temp < 45:
+                            set_motor_speed_and_direction(0, "forward")
+                            fanOn = False
+
                 # Read from the StreamingOutput and broadcast via WebSocket
                 frame_data = camera.stream_out.read()
                 if frame_data:
                     websocketd.manager.broadcast(frame_data, binary=True)
+
 
 
                 if 7 <= current_hour < 21:
@@ -428,6 +462,7 @@ def stream():
     finally:
         camera.picamera.stop()
         camera.picamera.stop_encoder()
+        GPIO.cleanup()
 
 
 if __name__ == "__main__":

@@ -12,11 +12,6 @@ from picamera2.encoders import H264Encoder, MJPEGEncoder, Quality
 from picamera2.outputs import FileOutput, CircularOutput
 import io
 
-import RPi.GPIO as GPIO
-
-from pydrive.drive import GoogleDrive
-from pydrive.auth import GoogleAuth
-
 import requests
 
 import subprocess
@@ -54,7 +49,7 @@ api = Api(app)
 # Global Login Credentials
 users = {os.getenv("APP_LOGIN_USERNAME"): os.getenv("APP_LOGIN_PASSWORD")}
 
-base_dir = "/root/birdcam"
+base_dir = "/home/birdcam/birdCam"
 video_dir = base_dir + "/static/videos/"
 images_dir = base_dir + "/static/images"
 
@@ -66,7 +61,7 @@ logging.basicConfig(
 
 
 def get_predictions():
-    conn = sqlite3.connect("/root/birdcam/db/bird_predictions.db")
+    conn = sqlite3.connect("/home/birdcam/birdCam/db/bird_predictions.db")
     cursor = conn.cursor()
 
     # Fetch recent predictions, only from the most recent INSERT
